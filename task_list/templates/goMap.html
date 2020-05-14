@@ -16,7 +16,7 @@
   var map_data;
   var covid_data;
   load_map()
-  makeMap('holdMap', 'mapSVG', map_data, covid_data)
+  //makeMap('holdMap', 'mapSVG', map_data, covid_data)
   function load_map() {
     $.ajax({
           type: "POST",
@@ -26,8 +26,9 @@
             map_data = dataset.data;
             covid_data = dataset.covid;
             console.log(covid_data)
+            makeMap('holdMap', 'mapSVG', map_data, covid_data)
           },
-          async: false
+          async: true
     });
   }
   </script>
