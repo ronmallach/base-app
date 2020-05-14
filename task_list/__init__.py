@@ -19,5 +19,7 @@ def create_app():
     migrate.init_app(app, db)
 
     from . import models
+    from . import task_list
+    app.register_blueprint(task_list.bp)
 
     return app
