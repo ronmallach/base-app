@@ -1,1 +1,1 @@
-"heroku ps:type standard-1x; web: flask db upgrade; gunicorn task_list:'create_app()'" 
+web: flask db upgrade; gunicorn task_list:'create_app()'
