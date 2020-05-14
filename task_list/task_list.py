@@ -20,37 +20,37 @@ bp = Blueprint('task_list', __name__)
 # @app.route('/')
 # @app.route('/index')
 # @login_required
-@bp.route('/')
+@bp.route('/', methods=('GET', 'POST'))
 def index():
     return render_template('index.html')#, title=current_user.username)
 
 # @app.route('/sunburst')
 # @login_required
-@bp.route('/sunburst')
+@bp.route('/sunburst', methods=('GET', 'POST'))
 def sunburst():
     return render_template('sunburst.html')#, title=current_user.username)
 
 # @app.route('/line')
 # @login_required
-@bp.route('/line')
+@bp.route('/line', methods=('GET', 'POST'))
 def line():
     return render_template('line.html')#, title=current_user.username)
 
 # @app.route('/dataInput')
 # @login_required
-@bp.route('/dataInput')
+@bp.route('/dataInput', methods=('GET', 'POST'))
 def dataInput():
     return render_template('dataInput.html')#, title=current_user.username)
 
 # @app.route('/calender')
 # @login_required
-@bp.route('/calender')
+@bp.route('/calender', methods=('GET', 'POST'))
 def calender():
     return render_template('calender.html')#, title=current_user.username)
 
 # @app.route('/goMap')
 # @login_required
-@bp.route('/goMap')
+@bp.route('/goMap', methods=('GET', 'POST'))
 def goMap():
     return render_template('goMap.html')#, title=current_user.username)
 
