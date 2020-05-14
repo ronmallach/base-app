@@ -9,5 +9,5 @@ bp = Blueprint('task_list', __name__)
 
 @bp.route('/', methods=('GET', 'POST'))
 def index():
-    return render_template('task_list/index.html')
+    return render_template('index.html')
 
