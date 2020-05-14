@@ -1,17 +1,12 @@
 function makeMap(parentName, SVG_name, map_data, covid_data){
   d3.select("#" + SVG_name).remove()
 
-
-
   parentWidth = document.getElementById(parentName).offsetWidth
   var margin = {top: 10, right: 10, bottom: 10, left: 10},
   height = parentWidth - margin.top - margin.bottom
   width = parentWidth - margin.left - margin.right
 
   color = d3.scaleSequentialLog([1, 10**5], d3.interpolateReds)
-
-
-
 
   var svg = d3.select("#" + parentName)
     .append("svg")

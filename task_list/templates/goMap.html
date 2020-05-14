@@ -18,7 +18,6 @@
   load_map()
   makeMap('holdMap', 'mapSVG', map_data, covid_data)
   function load_map() {
-    console.log('hello')
     $.ajax({
           type: "POST",
           url: "load_map", // url on python side

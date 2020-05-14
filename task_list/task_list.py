@@ -8,6 +8,7 @@ import pandas as pd
 # from app import app, db
 # from werkzeug.urls import url_parse
 import json
+import os
 
 
 bp = Blueprint('task_list', __name__)
@@ -94,8 +95,9 @@ def goMap():
 
 @bp.route('/load_map', methods = ['POST'])
 def loadMap():
-    data = json.load(open('data/counties-albers-10m.json'))
-    covid = json.load(open('data/covid-us-counties.json'))
+    print(os.path.dirname(os.path.realpath(__file__)))
+    data = json.load(open('task_list\data\counties-albers-10m.json'))
+    covid = json.load(open('task_list\data\covid-us-counties.json'))
     return jsonify(status='success', data=data, covid=covid)
 
 # @app.route('/get_subcat_loc', methods = ['POST'])
