@@ -44,22 +44,22 @@
 
 <nav class="w3-sidebar w3-collapse w3-border-right w3-white w3-animate-bottom" style="display:block;width:15%" id="mySidebar">
   <div class="w3-bar-block">
-    <a href="{{ url_for('index') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-home fa-fw"></i>  Overview</a>
-    <a href="{{ url_for('sunburst') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-pie-chart fa-fw"></i>  Sunburst</a>
-    <a href="{{ url_for('line') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-fw fa-line-chart"></i>  Line Graphs</a>
-    <a href="{{ url_for('calender') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-calendar fa-fw"></i>  Calender View</a>
-    <a href="{{ url_for('goMap') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-thumb-tack fa-fw"></i>  Map View</a>
-    <a href="{{ url_for('index') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-table fa-fw"></i>  Table View</a>
+    <a href="{{ url_for('task_list.index') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-home fa-fw"></i>  Overview</a>
+    <a href="{{ url_for('task_list.sunburst') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-pie-chart fa-fw"></i>  Sunburst</a>
+    <a href="{{ url_for('task_list.line') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-fw fa-line-chart"></i>  Line Graphs</a>
+    <a href="{{ url_for('task_list.calender') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-calendar fa-fw"></i>  Calender View</a>
+    <a href="{{ url_for('task_list.goMap') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-thumb-tack fa-fw"></i>  Map View</a>
+    <a href="{{ url_for('task_list.index') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-table fa-fw"></i>  Table View</a>
     <div class="w3-dropdown-hover">
       <button class="w3-button"> Data Settings  <i class="fa fa-caret-down"></i></button>
       <div class="w3-dropdown-content w3-bar-block">
-        <a href="{{ url_for('dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-upload fa-fw"></i>  Data Upload</a>
-        <a href="{{ url_for('dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-pencil-square-o fa-fw"></i> Adjustments</a>
-        <a href="{{ url_for('dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-sitemap fa-fw"></i>  Set Hierarchy</a>
-        <a href="{{ url_for('dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-repeat fa-fw"></i>  Set Recurring</a>
-        <a href="{{ url_for('dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-university fa-fw"></i>  Businesses</a>
-        <a href="{{ url_for('dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-check-square-o fa-fw"></i>  Set Goals</a>
-        <a href="{{ url_for('dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-cog fa-fw"></i>  Settings</a><br><br>
+        <a href="{{ url_for('task_list.dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-upload fa-fw"></i>  Data Upload</a>
+        <a href="{{ url_for('task_list.dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-pencil-square-o fa-fw"></i> Adjustments</a>
+        <a href="{{ url_for('task_list.dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-sitemap fa-fw"></i>  Set Hierarchy</a>
+        <a href="{{ url_for('task_list.dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-repeat fa-fw"></i>  Set Recurring</a>
+        <a href="{{ url_for('task_list.dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-university fa-fw"></i>  Businesses</a>
+        <a href="{{ url_for('task_list.dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-check-square-o fa-fw"></i>  Set Goals</a>
+        <a href="{{ url_for('task_list.dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-cog fa-fw"></i>  Settings</a><br><br>
       </div>
     </div>
   </div>
@@ -70,12 +70,7 @@
     <button class="w3-bar-item w3-button w3-hover-none w3-hover-text-light-grey" onclick="w3_open();"><i class="fa fa-bars"></i>  Menu</button>
     <span class="w3-bar-item w3-display-middle">Welcome to the MoneyApp</span>
     <span class="w3-bar-item w3-right">
-    <!--  {% if current_user.is_anonymous %}
-      <a href="{{ url_for('login') }}">Login</a>
-      <a href="{{ url_for('register') }}">Sign Up</a>
-      {% else %}
-      <a href="{{ url_for('logout') }}">Logout</a>
-      {% endif %} -->
+
     </span>
   </div>
   <div style='padding-top:5%;height:95%'>{% block content %}{% endblock %}</div>

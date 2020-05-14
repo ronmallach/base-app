@@ -12,48 +12,47 @@ import pandas as pd
 
 bp = Blueprint('task_list', __name__)
 
-# @bp.route('/', methods=('GET', 'POST'))
-# def index():
-#     return render_template('index.html')
-
 
 # @app.route('/')
 # @app.route('/index')
 # @login_required
 @bp.route('/', methods=('GET', 'POST'))
-@bp.route('/index', methods=('GET', 'POST'))
 def index():
-    return render_template('index.html')#, title=current_user.username)
+    return render_template('index.html')
+
+@bp.route('/index', methods=('GET', 'POST'))
+def index1():
+    return render_template('task_list/index.html')
 
 # @app.route('/sunburst')
 # @login_required
 @bp.route('/sunburst', methods=('GET', 'POST'))
 def sunburst():
-    return render_template('sunburst.html')#, title=current_user.username)
+    return render_template('sunburst.html')
 
 # @app.route('/line')
 # @login_required
 @bp.route('/line', methods=('GET', 'POST'))
 def line():
-    return render_template('line.html')#, title=current_user.username)
+    return render_template('line.html')
 
 # @app.route('/dataInput')
 # @login_required
 @bp.route('/dataInput', methods=('GET', 'POST'))
 def dataInput():
-    return render_template('dataInput.html')#, title=current_user.username)
+    return render_template('dataInput.html')
 
 # @app.route('/calender')
 # @login_required
 @bp.route('/calender', methods=('GET', 'POST'))
 def calender():
-    return render_template('calender.html')#, title=current_user.username)
+    return render_template('calender.html')
 
 # @app.route('/goMap')
 # @login_required
 @bp.route('/goMap', methods=('GET', 'POST'))
 def goMap():
-    return render_template('goMap.html')#, title=current_user.username)
+    return render_template('goMap.html')
 
 
 
