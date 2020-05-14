@@ -19,8 +19,7 @@ bundles = {
                           output='gen/main.css'),
 }
 
-assets = Environment(app)
-assets.register(bundles)
+
 
 def create_app():
     app = Flask(__name__)
@@ -33,6 +32,9 @@ def create_app():
 
     db.init_app(app)
     migrate.init_app(app, db)
+
+    assets = Environment(app)
+    assets.register(bundles)
 
     from . import models
     from . import task_list
