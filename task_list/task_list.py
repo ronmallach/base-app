@@ -21,6 +21,7 @@ bp = Blueprint('task_list', __name__)
 # @app.route('/index')
 # @login_required
 @bp.route('/', methods=('GET', 'POST'))
+@bp.route('/index', methods=('GET', 'POST'))
 def index():
     return render_template('index.html')#, title=current_user.username)
 
