@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class='w3-container w3-light-grey' id='SunHome'>
+    <div class='w3-col s5'>
+      <div class='w3-row'>
+        <div class='w3-col s6'>
+          <p> Sunburst Diagram </p>
+        </div>
+        <div class='w3-col w3-right s3'>
+          <div>
+            <div>From:</div>
+            <input id='suntime' type='number' value=30 min=7 max=1000 onchange="clickSunburst('holdsunBurst', 'sunburst', 'suntime')"></input>
+          </div>
+        </div>
+      </div>
+      <div class='w3-white' id='holdsunBurst'></div>
+    </div>
+    <div class='w3-col s4' style="overflow-y:scroll;" id='holdsunExpense'>
+      <table class="w3-table-all w3-hoverable w3-small w3-centered" id=sunExpense>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+  </div>
+  <script type="text/javascript">
+    clickSunburst('holdsunBurst', 'sunburst', 'suntime')
+  </script>
+
+{% endblock %}

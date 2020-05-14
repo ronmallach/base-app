@@ -1,0 +1,109 @@
+<html>
+<head>
+  {% if title %}
+    <title>{{ title }} - My Money</title>
+    {% else %}
+    <title>Welcome to Your Money</title>
+  {% endif %}
+  {% assets "d3_viz" %}
+      <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+  {% endassets %}
+  {% assets "home_css" %}
+      <link rel="stylesheet" href="{{ ASSET_URL }}" />
+  {% endassets %}
+</head>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://d3js.org/topojson.v3.min.js"></script>
+<script src="https://momentjs.com/downloads/moment.min.js"></script>
+<script src="https://unpkg.com/d3-foresight@0.10.1/dist/d3-foresight.min.js"></script>
+<script type="text/javascript">
+  var all_data;
+  load_data()
+  function load_data() {
+    $.ajax({
+          type: "POST",
+          url: "get_subcat_loc", // url on python side
+          contentType: "application/json",
+          success: function (dataset) {
+            all_data = dataset.data;
+            console.log(all_data)
+          },
+          async: false
+    });
+  }
+</script>
+<div>
+
+
+  <nav class="w3-sidebar w3-collapse w3-border-right w3-white w3-animate-bottom" style="display:block;width:15%" id="mySidebar">
+    <div class="w3-bar-block">
+      <a href="{{ url_for('index') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-home fa-fw"></i>  Overview</a>
+      <a href="{{ url_for('sunburst') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-pie-chart fa-fw"></i>  Sunburst</a>
+      <a href="{{ url_for('line') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-fw fa-line-chart"></i>  Line Graphs</a>
+      <a href="{{ url_for('calender') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-calendar fa-fw"></i>  Calender View</a>
+      <a href="{{ url_for('goMap') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-thumb-tack fa-fw"></i>  Map View</a>
+      <a href="{{ url_for('index') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-table fa-fw"></i>  Table View</a>
+      <div class="w3-dropdown-hover">
+        <button class="w3-button"> Data Settings  <i class="fa fa-caret-down"></i></button>
+        <div class="w3-dropdown-content w3-bar-block">
+          <a href="{{ url_for('dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-upload fa-fw"></i>  Data Upload</a>
+          <a href="{{ url_for('dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-pencil-square-o fa-fw"></i> Adjustments</a>
+          <a href="{{ url_for('dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-sitemap fa-fw"></i>  Set Hierarchy</a>
+          <a href="{{ url_for('dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-repeat fa-fw"></i>  Set Recurring</a>
+          <a href="{{ url_for('dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-university fa-fw"></i>  Businesses</a>
+          <a href="{{ url_for('dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-check-square-o fa-fw"></i>  Set Goals</a>
+          <a href="{{ url_for('dataInput') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-cog fa-fw"></i>  Settings</a><br><br>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="w3-main" id='main' style="margin-left:15%">
+    <div id='topBar' class="w3-bar w3-top w3-black w3-large" style="width:85%">
+      <button class="w3-bar-item w3-button w3-hover-none w3-hover-text-light-grey" onclick="w3_open();"><i class="fa fa-bars"></i>  Menu</button>
+      <span class="w3-bar-item w3-display-middle">Welcome to the MoneyApp</span>
+      <span class="w3-bar-item w3-right">
+        {% if current_user.is_anonymous %}
+        <a href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('register') }}">Sign Up</a>
+        {% else %}
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+      </span>
+    </div>
+    <div style='padding-top:5%;height:95%'>{% block content %}{% endblock %}</div>
+  </div>
+</div>
+
+<script>
+// Toggle between showing and hiding the sidebar, and add overlay effect
+function w3_open() {
+  if (mySidebar.style.display === 'block') {
+    document.getElementById("main").style.marginLeft = "0%";
+    document.getElementById("mySidebar").style.width = "0%";
+    document.getElementById("mySidebar").style.display = "none";
+    document.getElementById("topBar").style.width = "100%";
+  }else{
+    document.getElementById("main").style.marginLeft = "15%";
+    document.getElementById("mySidebar").style.width = "15%";
+    document.getElementById("mySidebar").style.display = "block";
+    document.getElementById("topBar").style.width = "85%";
+  }
+}
+
+// Close the sidebar with the close button
+function w3_close() {
+  document.getElementById("main").style.marginLeft = "0%";
+  document.getElementById("mySidebar").style.width = "0%";
+  document.getElementById("mySidebar").style.display = "none";
+  document.getElementById("topBar").style.width = "100%";
+}
+
+</script>
+</body>
+</html>
