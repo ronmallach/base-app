@@ -4,10 +4,10 @@ from flask import (
 from task_list import db
 from task_list.models import Task
 import pandas as pd
-# import app.load as load
+#from app.load import load
 # from app import app, db
 # from werkzeug.urls import url_parse
-# import json
+import json
 
 
 bp = Blueprint('task_list', __name__)
@@ -92,11 +92,11 @@ def goMap():
 #         return redirect(url_for('index'))
 #     return render_template('register.html', title='Register', form=form)
 
-# @app.route('/load_map', methods = ['POST'])
-# def loadMap():
-#     data = json.load(open('C:/Users/malla/OneDrive/Sandbox/Full App/moneyapp/app/data/counties-albers-10m.json'))
-#     covid = json.load(open('C:/Users/malla/OneDrive/Sandbox/Full App/moneyapp/app/data/covid-us-counties.json'))
-#     return jsonify(status='success', data=data, covid=covid)
+@bp.route('/load_map', methods = ['POST'])
+def loadMap():
+    data = json.load(open('data/counties-albers-10m.json'))
+    covid = json.load(open('data/covid-us-counties.json'))
+    return jsonify(status='success', data=data, covid=covid)
 
 # @app.route('/get_subcat_loc', methods = ['POST'])
 # def load_data():
