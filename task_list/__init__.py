@@ -2,9 +2,25 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import LoginManager
+from flask_assets import Bundle, Environment
 
 db = SQLAlchemy()
 migrate = Migrate()
+
+
+bundles = {
+        'd3_viz':Bundle('pieChart.js','preprocess.js','lineChart.js',
+                        'barChart.js','stackedAreaChart.js','sunburst.js',
+                        'expenseInput.js', 'calander.js', 'map.js',
+                        output='gen/main.js'),
+                
+        'home_css':Bundle('home.css',
+                          output='gen/main.css'),
+}
+
+assets = Environment(app)
+assets.register(bundles)
 
 def create_app():
     app = Flask(__name__)
@@ -20,6 +36,7 @@ def create_app():
 
     from . import models
     from . import task_list
+    
     app.register_blueprint(task_list.bp)
 
     return app

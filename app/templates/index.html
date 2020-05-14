@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class='w3-lightgrey'>
+      <div class="w3-col s4">
+        <p>Summary Statistics</p>
+        <div class="w3-col s4 w3-red w3-center w3-margin-16">
+          <p> Checking Account </p>
+          <p id='currentchecking'></p>
+        </div>
+        <div class="w3-col s4 w3-teal w3-center w3-margin-16">
+          <p> Savings Account </p>
+          <p id='currentsaving'></p>
+        </div>
+        <div class="w3-col s4 w3-blue w3-center w3-margin-16">
+          <p> Spending </p>
+          <p id='spentlast7'></p>
+        </div>
+        <div class="w3-col s4 w3-green w3-center w3-margin-16">
+          <p> Income </p>
+          <p id='incomelast28'></p>
+        </div>
+        <div class="w3-col s4 w3-blue-grey w3-center w3-margin-16">
+          <p> Net Change </p>
+          <p id='netmonth'></p>
+        </div>
+        <div class="w3-col s4 w3-blue w3-center w3-margin-16">
+          <p id='spentlast14'></p>
+          <p id='spentlast28'></p>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+      summary_statistics()
+    </script>
+
+{% endblock %}

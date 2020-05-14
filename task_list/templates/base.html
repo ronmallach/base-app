@@ -1,5 +1,17 @@
 <!DOCTYPE HTML>
-<title>{% block title %}{% endblock %} - MemCachier Flask Tutorial</title>
+<head>
+  {% if title %}
+    <title>{{ title }} - My Money</title>
+    {% else %}
+    <title>Welcome to Your Money</title>
+  {% endif %}
+  {% assets "d3_viz" %}
+      <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+  {% endassets %}
+  {% assets "home_css" %}
+      <link rel="stylesheet" href="{{ ASSET_URL }}" />
+  {% endassets %}
+</head>
 <!-- Fonts -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css"
       rel='stylesheet' type='text/css' />
