@@ -1468,7 +1468,7 @@ function makeMap(parentName, SVG_name, map_data, covid_data){
   fdata = covid_data.filter(d => d.date == today)
   Object.entries(fdata).forEach(d => data[d[1].fips] = d[1].positive)
 
-  //Object.entries(covid_data.cases).forEach(d => data[covid_data.fips[d[0]]] = d[1])
+
   console.log(data)
 
   g.append("g")
