@@ -1,3 +1,5 @@
+
+
 function makeMap(parentName, SVG_name, map_data, covid_data){
   d3.select("#" + SVG_name).remove()
 
@@ -24,20 +26,24 @@ function makeMap(parentName, SVG_name, map_data, covid_data){
   path = d3.geoPath()
 
   data = {}
-  Object.entries(covid_data.cases).forEach(d => data[covid_data.fips[d[0]]] = d[1])
+  today = 20200514
+  fdata = covid_data.filter(d => d.date == today)
+  Object.entries(fdata).forEach(d => data[d[1].fips] = d[1].positive)
+
+
   console.log(data)
 
   g.append("g")
     .attr("fill", "#444")
     .attr("cursor", "pointer")
     .selectAll("path")
-    .data(topojson.feature(map_data, map_data.objects.counties).features)
+    .data(topojson.feature(map_data, map_data.objects.states).features)
     .join("path")
-      .attr("fill", d =>  color(data[d.id]))
+      .attr("fill", d => color(data[parseInt(d.id)]))
       .on('click', clicked)
       .attr("d", path)
     .append("title")
-      .text(d => d.properties.name + ', Cases:' + data[d.id]);
+      .text(d => d.properties.name + ', Cases:' + data[parseInt(d.id)]);
 
 
   const zoom = d3.zoom()

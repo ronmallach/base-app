@@ -53,8 +53,9 @@ def calender():
 # @login_required
 @bp.route('/goMap', methods=('GET', 'POST'))
 def goMap():
-    return render_template('goMap.html')
-
+    data = json.load(open('task_list\data\counties-albers-10m.json'))
+    covid = json.load(open('task_list\data\covid-us-counties.json'))
+    return render_template('goMap.html', map_data=data, covid=covid)
 
 
 # @app.route('/login', methods=['GET', 'POST'])
@@ -95,7 +96,6 @@ def goMap():
 
 @bp.route('/load_map', methods = ['POST'])
 def loadMap():
-    print(os.path.dirname(os.path.realpath(__file__)))
     data = json.load(open('task_list\data\counties-albers-10m.json'))
     covid = json.load(open('task_list\data\covid-us-counties.json'))
     return jsonify(status='success', data=data, covid=covid)

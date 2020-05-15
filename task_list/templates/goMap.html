@@ -13,7 +13,16 @@
 </div>
   <script type="text/javascript">
 
-  var map_data;
+
+  d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/counties-albers-10m.json").then(function(map_data) {
+    d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data) {
+      console.log(map_data)
+      console.log(covid_data)
+      makeMap('holdMap', 'mapSVG', map_data, covid_data)
+    })
+  });
+
+  /*var map_data;
   var covid_data;
   load_map()
   //makeMap('holdMap', 'mapSVG', map_data, covid_data)
@@ -30,7 +39,7 @@
           async: true
     });
   }
-  //makeMap('holdMap', 'mapSVG', map_data, covid_data)
+  //makeMap('holdMap', 'mapSVG', map_data, covid_data)*/
   </script>
 
 {% endblock %}
