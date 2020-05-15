@@ -1469,8 +1469,6 @@ function makeMap(parentName, SVG_name, map_data, covid_data){
   Object.entries(fdata).forEach(d => data[d[1].fips] = d[1].positive)
 
 
-  console.log(data)
-
   g.append("g")
     .attr("fill", "#444")
     .attr("cursor", "pointer")
