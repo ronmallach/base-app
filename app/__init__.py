@@ -10,9 +10,7 @@ migrate = Migrate()
 
 
 bundles = {
-        'd3_viz':Bundle('pieChart.js','preprocess.js','lineChart.js',
-                        'barChart.js','stackedAreaChart.js','sunburst.js',
-                        'expenseInput.js', 'calander.js', 'map.js',
+        'd3_viz':Bundle('home.js',
                         output='gen/main.js'),
 
         'home_css':Bundle('home.css',
