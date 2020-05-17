@@ -21,9 +21,6 @@ bp = Blueprint('task_list', __name__)
 def index():
     return render_template('index.html')
 
-@bp.route('/index', methods=('GET', 'POST'))
-def index1():
-    return render_template('task_list/index.html')
 
 # @app.route('/sunburst')
 # @login_required
@@ -53,7 +50,9 @@ def calender():
 # @login_required
 @bp.route('/goMap', methods=('GET', 'POST'))
 def goMap():
-    return render_template('goMap.html')
+    data = {1:3, 5:3}
+    print(data)
+    return render_template('goMap.html', data=data)
 
 
 # @app.route('/login', methods=['GET', 'POST'])
