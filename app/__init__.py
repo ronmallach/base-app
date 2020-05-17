@@ -8,7 +8,6 @@ from flask_assets import Bundle, Environment
 db = SQLAlchemy()
 migrate = Migrate()
 
-
 bundles = {
         'd3_viz':Bundle('home.js',
                         output='gen/main.js'),
