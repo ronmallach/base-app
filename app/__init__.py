@@ -1,55 +1,42 @@
+import os
 from flask import Flask
-from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_assets import Bundle, Environment
 
-app = Flask(__name__)
-app.config.from_object(Config)
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-login = LoginManager(app)
-login.login_view = 'login'
+db = SQLAlchemy()
+migrate = Migrate()
+
 
 bundles = {
         'd3_viz':Bundle('pieChart.js','preprocess.js','lineChart.js',
                         'barChart.js','stackedAreaChart.js','sunburst.js',
                         'expenseInput.js', 'calander.js', 'map.js',
                         output='gen/main.js'),
-                
+
         'home_css':Bundle('home.css',
                           output='gen/main.css'),
 }
 
-assets = Environment(app)
-assets.register(bundles)
+def create_app():
+    app = Flask(__name__)
+    app.config.from_mapping(
+        SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev_key',
+        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+            'sqlite:///' + os.path.join(app.instance_path, 'app.sqlite'),
+        SQLALCHEMY_TRACK_MODIFICATIONS = False
+    )
 
-def create_app(config_class=Config):
-    # ...
-    if not app.debug and not app.testing:
-        # ...
+    db.init_app(app)
+    migrate.init_app(app, db)
 
-        if app.config['LOG_TO_STDOUT']:
-            stream_handler = logging.StreamHandler()
-            stream_handler.setLevel(logging.INFO)
-            app.logger.addHandler(stream_handler)
-        else:
-            if not os.path.exists('logs'):
-                os.mkdir('logs')
-            file_handler = RotatingFileHandler('logs/microblog.log',
-                                               maxBytes=10240, backupCount=10)
-            file_handler.setFormatter(logging.Formatter(
-                '%(asctime)s %(levelname)s: %(message)s '
-                '[in %(pathname)s:%(lineno)d]'))
-            file_handler.setLevel(logging.INFO)
-            app.logger.addHandler(file_handler)
+    assets = Environment(app)
+    assets.register(bundles)
 
-        app.logger.setLevel(logging.INFO)
-        app.logger.info('Microblog startup')
+    from . import models
+    from . import routes
+
+    app.register_blueprint(routes.bp)
 
     return app
-
-from app import routes, models
-
-
