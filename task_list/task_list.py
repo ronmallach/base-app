@@ -54,6 +54,11 @@ def goMap():
     print(data)
     return render_template('goMap.html', data=data)
 
+@bp.route('/testtest', methods=('GET', 'POST'))
+def giveData():
+    data = {1:3}
+    print(data)
+    return jsonify(status='success', data=data)
 
 # @app.route('/login', methods=['GET', 'POST'])
 # def login():

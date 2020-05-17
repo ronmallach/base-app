@@ -13,8 +13,10 @@
   <div class='w3-col s8'>
     <div class='w3-row'>
       <div class='w3-col s3'>
-        <p> US Map {{ data }} </p>
+        <p> US Map</p>
       </div>
+      <div class='w3-col s3'>
+        <input type=button id='runit' onclick='testit()'>Press Me</button>
     </div>
     <div class='w3-white' id='holdMap'></div>
   </div>
@@ -27,6 +29,30 @@
       makeMap('holdMap', 'mapSVG', map_data, covid_data)
     })
   });
+  /*var all_data;
+  load_data()
+  function load_data() {
+    $.ajax({
+          type: "POST",
+          url: "get_subcat_loc", // url on python side
+          contentType: "application/json",
+          success: function (dataset) {
+            all_data = dataset.data;
+            console.log(all_data)
+          },
+          async: false
+    });
+  }*/
+  function testit(){
+    $.ajax({
+      type: "POST",
+      url: "testtest",
+      contentType: "application/json",
+      success: function (data) {
+        console.log(data.data)
+      },
+    })
+  }
   </script>
 
 {% endblock %}
