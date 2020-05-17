@@ -43,6 +43,8 @@
           async: false
     });
   }*/
+  var dummy;
+  testit()
   function testit(){
     $.ajax({
       type: "POST",
@@ -50,9 +52,13 @@
       contentType: "application/json",
       success: function (data) {
         console.log(data.data)
+        dummy = data.data
       },
     })
   }
+
+  console.log('dummy')
+  console.log(dummy)
   </script>
 
 {% endblock %}
