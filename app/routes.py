@@ -2,7 +2,7 @@ from flask import (
     Blueprint, flash, redirect, render_template, request, url_for, jsonify
 )
 from app import db
-from app.models import Task
+from app.models import User
 import pandas as pd
 #from app.load import load
 # from app import app, db
