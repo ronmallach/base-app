@@ -9,7 +9,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 
 bundles = {
-        'd3_viz':Bundle('home.js',
+        'd3_viz':Bundle('home.js', 'map.js', 'foresight.js',
                         output='gen/main.js'),
 
         'home_css':Bundle('home.css',

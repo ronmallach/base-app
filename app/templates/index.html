@@ -1,5 +1,223 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div>hello world</div>
+
+<div class='w3-container w3-light-grey' id='everything'>
+  <div class="w3-col w3-border s3" id="controlPanel">
+    <div class="w3-row">
+      <h3> Policy Controller </h3>
+    </div>
+    <div class="w3-row">
+      <p> Parameter 1 </p>
+      <input type="range" name="Param 1" id="param1"
+       onchange="updateSliderValue('param1', 'param1Val')"
+        min=0 max=1 step=0.01>
+      <p> Value: <span id="param1Val"></span></p>
+    </div>
+    <div class="w3-row">
+      <p> Parameter 2 </p>
+      <input type="range" name="Param 2" id="param2" onchange="updateSliderValue('param2', 'param2Val')" min=0 max=1 step=0.01>
+      <p> Value: <span id="param2Val"></span></p>
+    </div>
+    <div class="w3-row">
+      <p> Parameter 3 </p>
+      <input type="range" name="Param 3" id="param3" onchange="updateSliderValue('param3', 'param3Val')" min=0 max=1 step=0.01>
+      <p> Value: <span id="param3Val"></span></p>
+    </div>
+    <div class='w3-row'>
+      <input type="button" value="Run Simulation">
+    </div>
+  </div>
+
+  <div class="w3-col s9 w3-border" id="dataPanel">
+    <div class="w3-row w3-border">
+      <div class="w3-col s3">
+        <p> Select a State: </p>
+        <select class="w3-select" name="selectState" id="selectState" onchange="updateMap()">
+          <option value="New York">New York</option>
+        </select>
+      </div>
+      <div class="w3-col s3">
+        <p> Statistic: </p>
+        <select class="w3-select" name="colorState" id="colorState" onchange="updateMap()">
+          <option value="positive">Cumulative Infections</option>
+          <option value="total">Number of Tests</option>
+          <option value="death">Total Deaths</option>
+          <option value="hospitalized">Cum. Hospitalizations</option>
+          <option value="recovered">Cum. Recoveries</option>
+        </select>
+      </div>
+      <div class="w3-col s3">
+        <p> Show From Date: </p>
+        <input type="date" name="mapDate" id="mapDate"
+         value='2020-05-18' onchange='updateMap()'>
+      </div>
+    </div>
+    <div class='w3-col s8' id="graphColumn">
+      <div id='holdForesight'>
+      </div>
+    </div>
+
+    <div class='w3-col s4' id="mapColumn">
+      <div class='w3-row w3-white w3-border' id='holdMap'></div>
+    </div>
+</div>
+</div>
+<script>
+
+function updateSliderValue(sliderId, showValueId){
+  var param1Slider = document.getElementById(sliderId)
+  var showParam1Value = document.getElementById(showValueId)
+  showParam1Value.innerHTML = param1Slider.value;
+}
+states_hash =
+  {
+    'Alabama': 'AL',
+    'Alaska': 'AK',
+    'American Samoa': 'AS',
+    'Arizona': 'AZ',
+    'Arkansas': 'AR',
+    'California': 'CA',
+    'Colorado': 'CO',
+    'Connecticut': 'CT',
+    'Delaware': 'DE',
+    'District Of Columbia': 'DC',
+    'Federated States Of Micronesia': 'FM',
+    'Florida': 'FL',
+    'Georgia': 'GA',
+    'Guam': 'GU',
+    'Hawaii': 'HI',
+    'Idaho': 'ID',
+    'Illinois': 'IL',
+    'Indiana': 'IN',
+    'Iowa': 'IA',
+    'Kansas': 'KS',
+    'Kentucky': 'KY',
+    'Louisiana': 'LA',
+    'Maine': 'ME',
+    'Marshall Islands': 'MH',
+    'Maryland': 'MD',
+    'Massachusetts': 'MA',
+    'Michigan': 'MI',
+    'Minnesota': 'MN',
+    'Mississippi': 'MS',
+    'Missouri': 'MO',
+    'Montana': 'MT',
+    'Nebraska': 'NE',
+    'Nevada': 'NV',
+    'New Hampshire': 'NH',
+    'New Jersey': 'NJ',
+    'New Mexico': 'NM',
+    'New York': 'NY',
+    'North Carolina': 'NC',
+    'North Dakota': 'ND',
+    'Northern Mariana Islands': 'MP',
+    'Ohio': 'OH',
+    'Oklahoma': 'OK',
+    'Oregon': 'OR',
+    'Palau': 'PW',
+    'Pennsylvania': 'PA',
+    'Puerto Rico': 'PR',
+    'Rhode Island': 'RI',
+    'South Carolina': 'SC',
+    'South Dakota': 'SD',
+    'Tennessee': 'TN',
+    'Texas': 'TX',
+    'Utah': 'UT',
+    'Vermont': 'VT',
+    'Virgin Islands': 'VI',
+    'Virginia': 'VA',
+    'Washington': 'WA',
+    'West Virginia': 'WV',
+    'Wisconsin': 'WI',
+    'Wyoming': 'WY'
+  }
+
+stateDropdown()
+updateMap()
+
+function updateMap() {
+  date = d3.select("#mapDate")._groups[0][0].value
+  state = d3.select("#selectState")._groups[0][0].value
+  statistic = d3.select("#colorState")._groups[0][0].value
+  date = parseFloat(date.replace(/-/g, ""))
+  d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-albers-10m.json").then(function(map_data) {
+    d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data){
+      makeMap('holdMap', 'mapSVG', date, statistic, map_data, covid_data)
+      makeForesight('holdForesight', covid_data, state, statistic)
+    })
+  })
+}
+
+function stateDropdown(id='selectState'){
+  dropdown = document.getElementById(id)
+  for (state in states_hash){
+    var stateOption = new Option(state, state)
+    dropdown.options.add(stateOption)
+  }
+}
+
+states_hash =
+  {
+    'Alabama': 'AL',
+    'Alaska': 'AK',
+    'American Samoa': 'AS',
+    'Arizona': 'AZ',
+    'Arkansas': 'AR',
+    'California': 'CA',
+    'Colorado': 'CO',
+    'Connecticut': 'CT',
+    'Delaware': 'DE',
+    'District Of Columbia': 'DC',
+    'Federated States Of Micronesia': 'FM',
+    'Florida': 'FL',
+    'Georgia': 'GA',
+    'Guam': 'GU',
+    'Hawaii': 'HI',
+    'Idaho': 'ID',
+    'Illinois': 'IL',
+    'Indiana': 'IN',
+    'Iowa': 'IA',
+    'Kansas': 'KS',
+    'Kentucky': 'KY',
+    'Louisiana': 'LA',
+    'Maine': 'ME',
+    'Marshall Islands': 'MH',
+    'Maryland': 'MD',
+    'Massachusetts': 'MA',
+    'Michigan': 'MI',
+    'Minnesota': 'MN',
+    'Mississippi': 'MS',
+    'Missouri': 'MO',
+    'Montana': 'MT',
+    'Nebraska': 'NE',
+    'Nevada': 'NV',
+    'New Hampshire': 'NH',
+    'New Jersey': 'NJ',
+    'New Mexico': 'NM',
+    'New York': 'NY',
+    'North Carolina': 'NC',
+    'North Dakota': 'ND',
+    'Northern Mariana Islands': 'MP',
+    'Ohio': 'OH',
+    'Oklahoma': 'OK',
+    'Oregon': 'OR',
+    'Palau': 'PW',
+    'Pennsylvania': 'PA',
+    'Puerto Rico': 'PR',
+    'Rhode Island': 'RI',
+    'South Carolina': 'SC',
+    'South Dakota': 'SD',
+    'Tennessee': 'TN',
+    'Texas': 'TX',
+    'Utah': 'UT',
+    'Vermont': 'VT',
+    'Virgin Islands': 'VI',
+    'Virginia': 'VA',
+    'Washington': 'WA',
+    'West Virginia': 'WV',
+    'Wisconsin': 'WI',
+    'Wyoming': 'WY'
+  }
+</script>
 {% endblock %}
