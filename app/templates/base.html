@@ -25,15 +25,16 @@
 <script src="https://unpkg.com/d3-foresight"></script>
 <div>
 
-<nav class="w3-sidebar w3-collapse w3-border-right w3-white w3-animate-bottom" style="display:block;width:0%" id="mySidebar">
+<nav class="w3-sidebar w3-collapse w3-border-right w3-white w3-animate-bottom" style="display:none;width:0%" id="mySidebar">
   <div class="w3-bar-block">
     <a href="{{ url_for('blueprint.index') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-home fa-fw"></i> Home</a>
+    <a href="{{ url_for('blueprint.input') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-home fa-fw"></i> Data Input</a>
   </div>
 </nav>
 
 <div class="w3-main" id='main' style="margin-left:0%">
   <div id='topBar' class="w3-bar w3-top w3-dark-grey w3-large" style="height:5%; width:100%">
-    <!--<button class="w3-bar-item w3-button w3-hover-none w3-hover-text-light-grey" onclick="w3_open();"><i class="fa fa-bars"></i> Menu</button>-->
+    <button class="w3-bar-item w3-button w3-hover-none w3-hover-text-light-grey" onclick="w3_open();"><i class="fa fa-bars"></i> Menu</button>
     <span class="w3-bar-item w3-display-middle">App Title</span>
     <span class="w3-bar-item w3-right">
 

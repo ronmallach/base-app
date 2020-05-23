@@ -16,13 +16,17 @@ bundles = {
                           output='gen/main.css'),
 }
 
+UPLOAD_FOLDER = 'uploads/'
+ALLOWED_EXTENSIONS = {'csv', 'xls', 'xlsx'}
+
 def create_app():
     app = Flask(__name__)
     app.config.from_mapping(
         SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev_key',
         SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
             'sqlite:///' + os.path.join(app.instance_path, 'app.sqlite'),
-        SQLALCHEMY_TRACK_MODIFICATIONS = False
+        SQLALCHEMY_TRACK_MODIFICATIONS = False,
+        UPLOAD_FOLDER = UPLOAD_FOLDER
     )
 
     db.init_app(app)

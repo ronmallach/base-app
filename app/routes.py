@@ -1,5 +1,6 @@
 from flask import (
-    Blueprint, flash, redirect, render_template, request, url_for, jsonify
+    Blueprint, flash, redirect, render_template, request, url_for,
+    jsonify, Response, send_file
 )
 from app import db
 from app.models import User
@@ -20,6 +21,42 @@ bp = Blueprint('blueprint', __name__)
 @bp.route('/', methods=('GET', 'POST'))
 def index():
     return render_template('index.html')
+
+@bp.route('/input', methods=('GET', 'POST'))
+def input():
+    return render_template('input.html')
+
+
+@bp.route('/download')
+def download_file():
+	path = "dummy.xlsx"
+	return send_file(path, as_attachment=True)
+
+
+ALLOWED_EXTENSIONS = {'csv', 'xls', 'xlsx'}
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@bp.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = file.filename
+            UPLOAD_FOLDER = '/uploads/'
+            file.save(os.path.join(UPLOAD_FOLDER, filename))
+            return redirect(url_for('/', filename=filename))
+
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
