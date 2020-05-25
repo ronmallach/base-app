@@ -3,49 +3,36 @@
 {% block content %}
 
 <div class='w3-container w3-light-grey' id='everything'>
-  <div class="w3-col w3-border s3" id="controlPanel">
-    <a href="{{ url_for('blueprint.download_file') }}">Download Data Template</a>
-    <textarea type='text' id='testpaste' placeholder='Paste Excel Data Here' onchange='clip()'></textarea>
-
-    <div class="w3-row">
-      <h3> Enter Data </h3>
-    </div>
+  <div class="w3-col w3-border s2" id="pastePanel">
+    <p> Lets type up some instructions here </p>
+    <a href="{{ url_for('blueprint.download_file') }}">1. Download Template</a>
+    <textarea type='text' id='userpaste' placeholder='2. Paste Excel Data Here'></textarea>
+    <p></p>
+    <button class='w3-button w3-dark-grey' onclick='clip()'>3. Upload Data</button>
   </div>
-
-  <div class='w3-col s3'>
-    <table id=testtable class='w3-table w3-bordered w3-border w3-hoverable w3-tiny w3-centered'>
-    </table>
+  <div class='w3-col s6' style="overflow-y:scroll; height:90vh">
+    <table id=usertable class='w3-table-all w3-hoverable w3-tiny w3-centered'></table>
   </div>
 </div>
 
 <script>
 
 function clip() {
-    // get the clipboard text
-    //var clipText = window.clipboardData.getData('Text');
-    var text = d3.select("#testpaste")._groups[0][0].value
-    // split into rows
-    clipRows = text.split(String.fromCharCode(10));
-    // split rows into columns
+    var text = d3.select("#userpaste")._groups[0][0].value // get user pasted data
+    clipRows = text.split(String.fromCharCode(10));  // split into rows
     for (i=0; i<clipRows.length; i++) {
+        // split rows into columns
         clipRows[i] = clipRows[i].split(String.fromCharCode(9));
     }
-    // write out in a table
-    document.getElementById('testtable').innerHTML = ''
-    table = document.getElementById("testtable")
-    titleRow = table.insertRow();
-    newCell = titleRow.insertCell();
-    newCell.innerText = 'Date'
-    newCell = titleRow.insertCell();
-    newCell.innerText = 'Param1'
-    newCell = titleRow.insertCell();
-    newCell.innerText = 'Param2'
+    document.getElementById('usertable').innerHTML = '' // clear old table if any
+    table = document.getElementById("usertable") // establish new table
+
     for (i=0; i<clipRows.length - 1; i++) {
         newRow = table.insertRow();
         for (j=0; j<clipRows[i].length; j++) {
             newCell = newRow.insertCell();
             if (clipRows[i][j].length == 0) {
-                newCell.innerText = ' ';
+                newCell.innerText = '';
             }
             else {
                 newCell.contentEditable = true
@@ -65,7 +52,7 @@ function tableToJson(id) {
       headers[i] = table.rows[0].cells[i].innerHTML.replace(/ /gi,'');
   }
   // go through cells
-	start = 0
+	start = 1
   for (var i=start; i<table.rows.length; i++) {
       var tableRow = table.rows[i];
       var rowData = {};

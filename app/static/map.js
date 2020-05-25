@@ -63,8 +63,8 @@ function makeMap(parentName, SVG_name, fromDate, colorBy, map_data, covid_data){
   function clicked(d) {
     clickState = d.properties.name
     document.getElementById('selectState').value = clickState
-      statistic = d3.select("#colorState")._groups[0][0].value
-    makeForesight('holdForesight', covid_data, clickState, statistic)
+    statistic = d3.select("#colorState")._groups[0][0].value
+    updateMap()
   }
 
   function clicked_zoom(d) {

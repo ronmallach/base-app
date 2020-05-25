@@ -3,77 +3,33 @@
 {% block content %}
 
 <div class='w3-container w3-light-grey' id='everything'>
-  <div class="w3-col w3-border s3" id="controlPanel">
-
-    <a href="{{ url_for('blueprint.download_file') }}">Download</a>
-    <textarea type='text' id='testpaste' onchange='clip()'></textarea>
-
-    <form action = "/upload" method = "post" enctype="multipart/form-data">
-        <input type="file" name="file" />
-        <input type = "submit" value="Upload">
-    </form>
-
-    <div class="w3-row">
-      <h3> Policy Controller </h3>
-    </div>
-    <div class="w3-row">
-      <p> Parameter 1 </p>
-      <input type="range" name="Param 1" id="param1"
-       onchange="updateSliderValue('param1', 'param1Val')"
-        min=0 max=1 step=0.01>
-      <p> Value: <span id="param1Val"></span></p>
-    </div>
-    <div class="w3-row">
-      <p> Parameter 2 </p>
-      <input type="range" name="Param 2" id="param2" onchange="updateSliderValue('param2', 'param2Val')" min=0 max=1 step=0.01>
-      <p> Value: <span id="param2Val"></span></p>
-    </div>
-    <div class="w3-row">
-      <p> Parameter 3 </p>
-      <input type="range" name="Param 3" id="param3" onchange="updateSliderValue('param3', 'param3Val')" min=0 max=1 step=0.01>
-      <p> Value: <span id="param3Val"></span></p>
-    </div>
-    <div class='w3-row'>
-      <input type="button" value="Run Simulation">
-    </div>
-  </div>
-
-  <div class="w3-col s9 w3-border" id="dataPanel">
-    <div class="w3-row w3-border">
-      <div class="w3-col s3">
-        <p> Select a State: </p>
-        <select class="w3-select" name="selectState" id="selectState" onchange="updateMap()">
-          <option value="New York">New York</option>
-        </select>
-      </div>
-      <div class="w3-col s3">
-        <p> Statistic: </p>
-        <select class="w3-select" name="colorState" id="colorState" onchange="updateMap()">
-          <option value="positive">Cumulative Infections</option>
-          <option value="total">Number of Tests</option>
-          <option value="death">Total Deaths</option>
-          <option value="hospitalized">Cum. Hospitalizations</option>
-          <option value="recovered">Cum. Recoveries</option>
-        </select>
-      </div>
-      <div class="w3-col s3">
-        <p> Show From Date: </p>
-        <input type="date" name="mapDate" id="mapDate"
-         value='2020-05-18' onchange='updateMap()'>
-      </div>
-    </div>
-    <div class='w3-col s8' id="graphColumn">
-      <div id='holdForesight'>
-      </div>
-    </div>
-
-    <div class='w3-col s4' id="mapColumn">
+  <div class="w3-col s12 w3-border" id="dataPanel">
+    <div class="w3-col s3">
+      <p> Select a State: </p>
+      <select class="w3-select" name="selectState" id="selectState" onchange="updateMap()">
+        <option value="New York">New York</option>
+      </select>
       <div class='w3-row w3-white w3-border' id='holdMap'></div>
+      <p> Color By: </p>
+      <select class="w3-select" name="colorState" id="colorState" onchange="updateMap()">
+        <option value="positive">Cumulative Infections</option>
+        <option value="total">Number of Tests</option>
+        <option value="death">Total Deaths</option>
+        <option value="hospitalized">Cum. Hospitalizations</option>
+        <option value="recovered">Cum. Recoveries</option>
+      </select>
+      <p> Show From Date: </p>
+      <input type="date" name="mapDate" id="mapDate"
+       value='2020-05-18' onchange='updateMap()'>
     </div>
-  </div>
-  <div class='w3-col s3'>
-    <table id=testtable class='w3-table w3-bordered w3-border w3-hoverable w3-tiny w3-centered'>
-    </table>
+    <div class='w3-col s4' id="graphColumn1">
+      <div id='holdInfections'></div>
+      <div id='holdHospitalization'></div>
+    </div>
+    <div class='w3-col s4' id="graphColumn2">
+      <div id='holdDeath'></div>
+      <div id='holdTest'></div>
+    </div>
   </div>
 </div>
 
@@ -159,7 +115,10 @@ function updateMap() {
   d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-albers-10m.json").then(function(map_data) {
     d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data){
       makeMap('holdMap', 'mapSVG', date, statistic, map_data, covid_data)
-      makeForesight('holdForesight', covid_data, state, statistic)
+      makeLine('holdInfections', 'inf', covid_data, state, 'positive')
+      makeLine('holdHospitalization', 'hosp', covid_data, state, 'hospitalized')
+      makeLine('holdDeath', 'deat', covid_data, state, 'death')
+      makeLine('holdTest', 'tests', covid_data, state, 'total')
     })
   })
 }
@@ -172,60 +131,5 @@ function stateDropdown(id='selectState'){
   }
 }
 
-
-function clip() {
-    // get the clipboard text
-    //var clipText = window.clipboardData.getData('Text');
-    var text = d3.select("#testpaste")._groups[0][0].value
-
-    console.log(text)
-    // split into rows
-    clipRows = text.split(String.fromCharCode(10));
-    console.log(clipRows)
-    // split rows into columns
-    for (i=0; i<clipRows.length; i++) {
-        clipRows[i] = clipRows[i].split(String.fromCharCode(9));
-    }
-    console.log(clipRows)
-    // write out in a table
-    table = document.getElementById("testtable")
-
-    for (i=0; i<clipRows.length - 1; i++) {
-
-        newRow = table.insertRow();
-
-        for (j=0; j<clipRows[i].length; j++) {
-            newCell = newRow.insertCell();
-            if (clipRows[i][j].length == 0) {
-                newCell.innerText = ' ';
-            }
-            else {
-                newCell.innerText = clipRows[i][j];
-            }
-        }
-    }
-}
-
-
-function tableToJson(id) {
-  var table = document.getElementById(id)
-  var data = [];
-  // first row needs to be headers
-  var headers = [];
-  for (var i=0; i<table.rows[0].cells.length; i++) {
-      headers[i] = table.rows[0].cells[i].innerHTML.replace(/ /gi,'');
-  }
-  // go through cells
-	start = 0
-  for (var i=start; i<table.rows.length; i++) {
-      var tableRow = table.rows[i];
-      var rowData = {};
-      for (var j=0; j<tableRow.cells.length ; j++) {
-          rowData[headers[j]] = tableRow.cells[j].innerHTML;
-      }
-      data.push(rowData);
-  }
-  return data;
-}
 </script>
 {% endblock %}

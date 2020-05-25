@@ -9,14 +9,13 @@ db = SQLAlchemy()
 migrate = Migrate()
 
 bundles = {
-        'd3_viz':Bundle('home.js', 'map.js', 'foresight.js',
+        'd3_viz':Bundle('home.js', 'map.js', 'foresight.js', 'covid-line.js',
                         output='gen/main.js'),
 
         'home_css':Bundle('home.css',
                           output='gen/main.css'),
 }
 
-UPLOAD_FOLDER = 'uploads/'
 ALLOWED_EXTENSIONS = {'csv', 'xls', 'xlsx'}
 
 def create_app():
@@ -26,7 +25,6 @@ def create_app():
         SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
             'sqlite:///' + os.path.join(app.instance_path, 'app.sqlite'),
         SQLALCHEMY_TRACK_MODIFICATIONS = False,
-        UPLOAD_FOLDER = UPLOAD_FOLDER
     )
 
     db.init_app(app)

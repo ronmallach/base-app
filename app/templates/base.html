@@ -13,6 +13,7 @@
       <link rel="stylesheet" href="{{ ASSET_URL }}" />
   {% endassets %}
 </head>
+<meta name='viewport' content='width=device-width, height=device-height, initial-scale=1.0'>
 <!-- Fonts -->
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
@@ -24,49 +25,34 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
 <script src="https://unpkg.com/d3-foresight"></script>
 <div>
-
-<nav class="w3-sidebar w3-collapse w3-border-right w3-white w3-animate-bottom" style="display:none;width:0%" id="mySidebar">
-  <div class="w3-bar-block">
-    <a href="{{ url_for('blueprint.index') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-home fa-fw"></i> Home</a>
-    <a href="{{ url_for('blueprint.input') }}" class="w3-bar-item w3-button w3-padding"><i class="fa fa-home fa-fw"></i> Data Input</a>
+  <div class="w3-bar w3-dark-grey">
+    <span class="w3-bar-item w3-display-topmiddle">App Title</span>
+    <div class="w3-dropdown-click">
+      <button class="w3-button" onclick="myFunction()">
+        Menu <i class="fa fa-caret-down"></i>
+      </button>
+      <div id="demo" class="w3-dropdown-content w3-bar-block w3-card">
+        <a href="{{ url_for('blueprint.index') }}" class="w3-bar-item w3-button"> Home</a>
+        <a href="{{ url_for('blueprint.input') }}" class="w3-bar-item w3-button"> Input</a>
+      </div>
+    </div>
   </div>
-</nav>
-
-<div class="w3-main" id='main' style="margin-left:0%">
-  <div id='topBar' class="w3-bar w3-top w3-dark-grey w3-large" style="height:5%; width:100%">
-    <button class="w3-bar-item w3-button w3-hover-none w3-hover-text-light-grey" onclick="w3_open();"><i class="fa fa-bars"></i> Menu</button>
-    <span class="w3-bar-item w3-display-middle">App Title</span>
-    <span class="w3-bar-item w3-right">
-
-    </span>
-  </div>
-  <div style='padding-top:5%;height:95%'>{% block content %}{% endblock %}</div>
-</div>
+  <div class='w3-col s12'>{% block content %}{% endblock %}</div>
 </div>
 
 <script>
 // Toggle between showing and hiding the sidebar, and add overlay effect
-function w3_open() {
-  if (mySidebar.style.display === 'block') {
-    document.getElementById("main").style.marginLeft = "0%";
-    document.getElementById("mySidebar").style.width = "0%";
-    document.getElementById("mySidebar").style.display = "none";
-    document.getElementById("topBar").style.width = "100%";
-  }else{
-    document.getElementById("main").style.marginLeft = "15%";
-    document.getElementById("mySidebar").style.width = "15%";
-    document.getElementById("mySidebar").style.display = "block";
-    document.getElementById("topBar").style.width = "85%";
+
+function myFunction() {
+  var x = document.getElementById("demo");
+  if (x.className.indexOf("w3-show") == -1) {
+    x.className += " w3-show";
+  } else {
+    x.className = x.className.replace(" w3-show", "");
   }
 }
-
 // Close the sidebar with the close button
-function w3_close() {
-  document.getElementById("main").style.marginLeft = "0%";
-  document.getElementById("mySidebar").style.width = "0%";
-  document.getElementById("mySidebar").style.display = "none";
-  document.getElementById("topBar").style.width = "100%";
-}
+
 
 </script>
 </body>
