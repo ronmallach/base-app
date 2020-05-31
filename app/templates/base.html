@@ -21,11 +21,12 @@
 <body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="https://d3js.org/d3.v5.min.js"></script>
+<script src='https://cdnjs.com/libraries/d3-legend'></script>
 <script src="https://d3js.org/topojson.v1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
 <script src="https://unpkg.com/d3-foresight"></script>
 <div>
-  <div class="w3-bar w3-dark-grey">
+  <div class="w3-bar w3-black">
     <span class="w3-bar-item w3-display-topmiddle">App Title</span>
     <div class="w3-dropdown-click">
       <button class="w3-button" onclick="myFunction()"> Menu <i class="fa fa-caret-down"></i> </button>
@@ -36,6 +37,9 @@
     </div>
   </div>
   <div class='w3-col s12'>{% block content %}{% endblock %}</div>
+  <footer class='w3-black'>
+    <p>Footer</p>
+  </footer>
 </div>
 
 <script>

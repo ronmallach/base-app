@@ -2,33 +2,40 @@
 
 {% block content %}
 
-<div class='w3-container w3-light-grey' id='everything'>
+<div class='w3-container w3-blue-grey' id='everything'>
   <div class="w3-col s12 w3-border" id="dataPanel">
-    <div class="w3-col s3">
-      <p> Select a State: </p>
-      <select class="w3-select" name="selectState" id="selectState" onchange="updateMap()">
+    <div class="w3-panel w3-col s3 w3-grey w3-margin" style='height:85vh'>
+      <p> Select a State:
+      <select id="selectState" onchange="updateMap()" style='width:50%'>
         <option value="New York">New York</option>
-      </select>
-      <div class='w3-row w3-white w3-border' id='holdMap'></div>
-      <p> Color By: </p>
-      <select class="w3-select" name="colorState" id="colorState" onchange="updateMap()">
+      </select></p>
+      <div class='w3-row w3-white w3-border w3-dark-grey' id='holdMap'></div>
+      <p> Color By:
+      <select  name="colorState" id="colorState" onchange="updateMap()">
         <option value="positive">Cumulative Infections</option>
-        <option value="total">Number of Tests</option>
+        <option value="totalTestResults">Number of Tests</option>
         <option value="death">Total Deaths</option>
         <option value="hospitalized">Cum. Hospitalizations</option>
         <option value="recovered">Cum. Recoveries</option>
-      </select>
-      <p> Show From Date: </p>
+      </select></p>
+      <p> Show From Date:
       <input type="date" name="mapDate" id="mapDate"
-       value='2020-05-18' onchange='updateMap()'>
+       value='2020-05-18' onchange='updateMap()'></p>
+       <p> Choose Graph Scale:
+       <select id='chooseScale' onchange='updateMap()'>
+         <option value='linear'>Linear</option>
+         <option value='log'> Logarithmic</option>
+       </select></p>
     </div>
-    <div class='w3-col s4' id="graphColumn1">
-      <div id='holdInfections'></div>
-      <div id='holdHospitalization'></div>
-    </div>
-    <div class='w3-col s4' id="graphColumn2">
-      <div id='holdDeath'></div>
-      <div id='holdTest'></div>
+    <div class='w3-col s6 w3-panel w3-grey' style='overflow-y:scroll; height:85vh'>
+      <div class='w3-col s6 w3-panel' id="graphColumn1">
+        <div class='w3-light-grey' id='holdInfections'></div>
+        <div class='w3-panel w3-light-grey' id='holdHospitalization'></div>
+      </div>
+      <div class='w3-col s6 w3-panel' id="graphColumn2">
+        <div class='w3-light-grey' id='holdDeath'></div>
+        <div class='w3-panel w3-light-grey' id='holdTest'></div>
+      </div>
     </div>
   </div>
 </div>
@@ -111,15 +118,16 @@ function updateMap() {
   date = d3.select("#mapDate")._groups[0][0].value
   state = d3.select("#selectState")._groups[0][0].value
   statistic = d3.select("#colorState")._groups[0][0].value
+  scaleType = d3.select("#chooseScale")._groups[0][0].value
   date = parseFloat(date.replace(/-/g, ""))
   d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-albers-10m.json").then(function(map_data) {
     d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data){
       console.log(covid_data)
       makeMap('holdMap', 'mapSVG', date, statistic, map_data, covid_data)
-      makeCoivdTrackerLine('holdInfections', 'inf', covid_data, state, 'positive')
-      makeCoivdTrackerLine('holdHospitalization', 'hosp', covid_data, state, 'hospitalized')
-      makeCoivdTrackerLine('holdDeath', 'deat', covid_data, state, 'death')
-      makeCoivdTrackerLine('holdTest', 'tests', covid_data, state, 'total')
+      makeCovidTrackerLine('holdInfections', 'inf', covid_data, scaleType, state, 'positive')
+      makeCovidTrackerLine('holdHospitalization', 'hosp', covid_data, scaleType, state, 'hospitalized')
+      makeCovidTrackerLine('holdDeath', 'deat', covid_data, scaleType, state, 'death')
+      makeCovidTrackerLine('holdTest', 'tests', covid_data, scaleType, state, 'totalTestResults')
     })
   })
 }

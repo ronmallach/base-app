@@ -10,7 +10,7 @@ function makeMap(parentName, SVG_name, fromDate, colorBy, map_data, covid_data){
   height = parentWidth - margin.top - margin.bottom
   width = parentWidth - margin.left - margin.right
 
-  color = d3.scaleSequentialLog([1, 10**5], d3.interpolateReds)
+  color = d3.scaleSequentialLog([1, d3.max(covid_data, d => d[colorBy])], d3.interpolateReds)
 
   var svg = d3.select("#" + parentName)
     .append("svg")
@@ -31,6 +31,27 @@ function makeMap(parentName, SVG_name, fromDate, colorBy, map_data, covid_data){
   covid_data_filter = covid_data.filter(d =>  d.date == fromDate)
   Object.entries(covid_data_filter).forEach(d => data[d[1].fips] = d[1][colorBy])
 
+
+  svg.selectAll("dot")
+      .data(data)
+  .enter().append("circle")
+      .attr("r", 5)
+      .attr("cx", function(d) { return x(d.date); })
+      .attr("cy", function(d) { return y(d.close); })
+      .on("mouseover", function(d) {
+          div.transition()
+              .duration(200)
+              .style("opacity", .9);
+          div	.html(formatTime(d.date) + "<br/>"  + d.close)
+              .style("left", (d3.event.pageX) + "px")
+              .style("top", (d3.event.pageY - 28) + "px");
+          })
+      .on("mouseout", function(d) {
+          div.transition()
+              .duration(500)
+              .style("opacity", 0);
+      });
+
   g.append("g")
     .attr("fill", "#444")
     .attr("cursor", "pointer")
@@ -41,8 +62,7 @@ function makeMap(parentName, SVG_name, fromDate, colorBy, map_data, covid_data){
       .on('click', clicked)
       .attr("d", path)
     .append("title")
-      .text(d => d.properties.name + ' Value , ' + data[d.id]);
-
+      .text(d => d.properties.name + " -- " + colorBy + " -> " + data[d.id]);
 
   const zoom = d3.zoom()
     .scaleExtent([1, 4])
@@ -71,24 +91,12 @@ function makeMap(parentName, SVG_name, fromDate, colorBy, map_data, covid_data){
     updateMap()
   }
 
-  function clicked_zoom(d) {
-    const [[x0, y0], [x1, y1]] = path.bounds(d);
-    d3.event.stopPropagation();
-    svg.transition().duration(750).call(
-      zoom.transform,
-      d3.zoomIdentity
-        .translate(width / 2, height / 2)
-        .scale(Math.min(8, 0.9 / Math.max((x1 - x0) / width, (y1 - y0) / height)))
-        .translate(-(x0 + x1) / 2, -(y0 + y1) / 2),
-      d3.mouse(svg.node())
-    );
-  }
-
   function zoomed() {
     const {transform} = d3.event;
     g.attr("transform", transform);
     g.attr("stroke-width", 1 / transform.k);
   }
+
 }
 
 
@@ -115,7 +123,6 @@ function eightToDate(eight){
   date = new Date(year,month,day)
   return date
 }
-
 
 function weekOfYear(date) {
   // from date input
@@ -236,24 +243,32 @@ function makeForesight(parentName, covid_data, state="New York", dataType='posit
 
 }
 
-function makeCoivdTrackerLine(parentName, SVG_name, covid_data, state="New York", dataType='positive'){
+function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linear', state="New York", dataType='positive'){
 
   d3.select("#" + SVG_name).remove()
   // clears the data from the last time
+  aspectRatio = 0.6
+
   parentWidth = document.getElementById(parentName).offsetWidth
-  var margin = {top: 25, right: 10, bottom: 20, left: 60},
-  height = parentWidth * .75- margin.top - margin.bottom
+  var margin = {top: 25, right: 10, bottom: 20, left: 30},
+  height = parentWidth * aspectRatio - margin.top - margin.bottom
   width = parentWidth - margin.left - margin.right
 
   data = covid_data.filter(d => d.state == states_hash[state])
 
   x = d3.scaleUtc()
         .domain(d3.extent(data, d => eightToDate(d.date)))
-        .range([0, width - margin.right])
+        .range([margin.left, width - margin.right])
 
-  y = d3.scaleLinear()
-        .domain([0, d3.max(data, d => d[dataType])])
+  if (scaleType == 'linear'){
+    y = d3.scaleLinear()
+          .domain([0, d3.max(data, d => d[dataType])])
+          .range([height - margin.bottom, margin.top])
+    }else{
+    y = d3.scaleLog()
+        .domain([1, d3.max(data, d => d[dataType])])
         .range([height - margin.bottom, margin.top])
+    }
 
   var svg = d3.select("#" + parentName)
     .append("svg")
@@ -264,11 +279,29 @@ function makeCoivdTrackerLine(parentName, SVG_name, covid_data, state="New York"
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
   svg.append("g")
-     .attr("transform", "translate(0," + height + ")")
-     .call(d3.axisBottom(x));
+     .attr("transform", `translate(0,${height - margin.bottom})`)
+     .call(d3.axisBottom(x)
+              .ticks(5)) ;
+
+  svg.append("text")
+    .attr("transform",
+          "translate(" + (width/2) + " ," + (height + margin.top-10) + ")")
+  .style("text-anchor", "middle")
+  .style("font-size", "8px")
+  .text("Date");
 
   svg.append("g")
-     .call(d3.axisLeft(y));
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(5));
+
+  svg.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 0 - margin.left)
+    .attr("x",0 - (height / 2))
+    .attr("dy", "1em")
+    .style("font-size", "8px")
+    .style("text-anchor", "middle")
+    .text("Value (in Thousands)");
 
   drawLine = d3.line()
                .y(function(d) {return y(d[dataType])})
@@ -282,6 +315,7 @@ function makeCoivdTrackerLine(parentName, SVG_name, covid_data, state="New York"
      .attr("stroke", "steelblue")
      .attr("stroke-width", 1.5)
      .attr("d", d => drawLine(d))
+
 
     svg.append("text")
            .attr("x", (width / 2))
