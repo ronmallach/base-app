@@ -7,11 +7,23 @@
     <p> Lets type up some instructions here </p>
     <a href="{{ url_for('blueprint.download_file') }}">1. Download Template</a>
     <textarea type='text' id='userpaste' placeholder='2. Paste Excel Data Here'></textarea>
+    <p>3. What is this input Data?</p>
+    <select id='calOrpol' class='w3-select w3-border'>
+      <option value="calibrate">Historical Data</option>
+      <option value="policy">Policy Implementation</option>
+    </select>
     <p></p>
-    <button class='w3-button w3-dark-grey' onclick='clip()'>3. Upload Data</button>
+    <button class='w3-button w3-dark-grey' onclick='clip()'>4. Upload Data</button>
+    <button class='w3-button w3-dark-grey' onclick='calibrate()'>5. Send to Python</button>
   </div>
   <div class='w3-col s6' style="overflow-y:scroll; height:90vh">
     <table id=usertable class='w3-table-all w3-hoverable w3-tiny w3-centered'></table>
+  </div>
+  <div class='w3-col s3' style="overflow-y:scroll; height:90vh">
+    <div class='w3-border' id=inputGraphCases></div>
+    <div class='w3-border' id=inputGraphHospital></div>
+    <div class='w3-border' id=inputGraphDeath></div>
+    <div class='w3-border' id=inputGraphTest></div>
   </div>
 </div>
 
@@ -32,6 +44,8 @@ function clip() {
         for (j=0; j<clipRows[i].length; j++) {
             newCell = newRow.insertCell();
             if (clipRows[i][j].length == 0) {
+                newCell.contentEditable = true
+
                 newCell.innerText = '';
             }
             else {
@@ -40,8 +54,33 @@ function clip() {
             }
         }
     }
+    inputType = document.getElementById('calOrpol').value
+    data = tableToJson('usertable')
+    if (inputType == 'calibrate'){
+      makeUserInputLine('inputGraphCases', 'viewInputCases', data, dataType='Cases')
+      makeUserInputLine('inputGraphHospital', 'viewInputHospital', data, dataType='Hospitalization')
+      makeUserInputLine('inputGraphDeath', 'viewInputDeath', data, dataType='Deaths')
+      makeUserInputLine('inputGraphTest', 'viewInputTest', data, dataType='Tests')
+    }else{
+      makeUserInputLine('inputGraphCases', 'viewInputCases', data, dataType='Scenario1-Param1')
+      makeUserInputLine('inputGraphHospital', 'viewInputHospital', data, dataType='Scenario1-Param2')
+      makeUserInputLine('inputGraphDeath', 'viewInputDeath', data, dataType='Scenario1-Param3')
+    }
 }
 
+function calibrate(){
+  to_python = tableToJson("usertable")
+  $.ajax({
+        type: "POST",
+        url: "calibrate_model", // url on python side
+        data: JSON.stringify(to_python),
+        contentType: "application/json",
+        success: function (dataset) {
+          all_data = dataset.data;
+          console.log(all_data)
+        },
+  });
+}
 
 function tableToJson(id) {
   var table = document.getElementById(id)

@@ -1,4 +1,4 @@
-function makeLine(parentName, SVG_name, covid_data, state="New York", dataType='positive'){
+function makeCoivdTrackerLine(parentName, SVG_name, covid_data, state="New York", dataType='positive'){
 
   d3.select("#" + SVG_name).remove()
   // clears the data from the last time

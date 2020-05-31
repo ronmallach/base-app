@@ -10,6 +10,7 @@ migrate = Migrate()
 
 bundles = {
         'd3_viz':Bundle('home.js', 'map.js', 'foresight.js', 'covid-line.js',
+                        'userInput-line.js',
                         output='gen/main.js'),
 
         'home_css':Bundle('home.css',

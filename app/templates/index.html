@@ -114,11 +114,12 @@ function updateMap() {
   date = parseFloat(date.replace(/-/g, ""))
   d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-albers-10m.json").then(function(map_data) {
     d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data){
+      console.log(covid_data)
       makeMap('holdMap', 'mapSVG', date, statistic, map_data, covid_data)
-      makeLine('holdInfections', 'inf', covid_data, state, 'positive')
-      makeLine('holdHospitalization', 'hosp', covid_data, state, 'hospitalized')
-      makeLine('holdDeath', 'deat', covid_data, state, 'death')
-      makeLine('holdTest', 'tests', covid_data, state, 'total')
+      makeCoivdTrackerLine('holdInfections', 'inf', covid_data, state, 'positive')
+      makeCoivdTrackerLine('holdHospitalization', 'hosp', covid_data, state, 'hospitalized')
+      makeCoivdTrackerLine('holdDeath', 'deat', covid_data, state, 'death')
+      makeCoivdTrackerLine('holdTest', 'tests', covid_data, state, 'total')
     })
   })
 }

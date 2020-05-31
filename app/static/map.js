@@ -112,6 +112,7 @@ function eightToDate(eight){
   return date
 }
 
+
 function weekOfYear(date) {
   // from date input
   //year = parseInt(date.substring(0,4))

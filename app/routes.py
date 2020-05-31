@@ -31,6 +31,11 @@ def download_file():
 	path = "dummy.xlsx"
 	return send_file(path, attachment_filename='test.xlsx', as_attachment=True)
 
+@bp.route('/calibrate_model', methods=('GET','POST'))
+def calibrate_model():
+    get = request.get_json() # retrieve input data from ajax request
+    print(get)
+    return jsonify(status='success', data=get)
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
