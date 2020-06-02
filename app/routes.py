@@ -44,7 +44,7 @@ def calibrate_model():
     to_df = {}
     for i,v in enumerate(get):
         to_df[i] = v
-    df = pd.DataFrame.from_dict(to_df,'index')
+    df = pd.DataFrame.from_dict(to_df,orient='index')
     results = COVID_model.run_simulation(state="NY")
     for k,v in results.items():
         results[k].index = results[k].index.astype(str)
