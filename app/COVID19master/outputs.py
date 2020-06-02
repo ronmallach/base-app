@@ -144,7 +144,7 @@ class output_var:
 
     def plot_decision_output_3(self):
         #plt.style.use('seaborn')
-        fig, ax = plt.subplots(2, 1)
+        #fig, ax = plt.subplots(2, 1)
         df_data = np.array([self.univ_test_cost, self.trac_test_cost, self.bse_test_cost,\
                             self.num_trac, self.num_base, self.num_uni])
         df_name = ['cost of universal testing', 'cost of contact tracing', 'cost of symptom-based testing',\
@@ -222,7 +222,7 @@ class output_var:
     def plot_decison(self):
         #plt.style.use('seaborn')
         date = pd.date_range(start= self.decision_d, periods= self.policy_plot.shape[0])
-        fig, ax = plt.subplots(2, 1)
+        #fig, ax = plt.subplots(2, 1)
         df = pd.DataFrame(data = self.policy_plot, index = date, columns = ['Percent reduction in contacts through social distancing',\
                         'Testing capacity – maximum tests per day through contact tracing', \
                         'Testing capacity – maximum tests per day through universal testing'])
