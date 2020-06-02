@@ -15,6 +15,8 @@ function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linea
         .domain(d3.extent(data, d => eightToDate(d.date)))
         .range([margin.left, width - margin.right])
 
+
+
   if (scaleType == 'linear'){
     y = d3.scaleLinear()
           .domain([0, d3.max(data, d => d[dataType])])
@@ -35,8 +37,7 @@ function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linea
 
   svg.append("g")
      .attr("transform", `translate(0,${height - margin.bottom})`)
-     .call(d3.axisBottom(x)
-              .ticks(5)) ;
+     .call(d3.axisBottom(x).ticks(5)) ;
 
   svg.append("text")
     .attr("transform",

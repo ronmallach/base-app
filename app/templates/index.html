@@ -19,8 +19,7 @@
         <option value="recovered">Cum. Recoveries</option>
       </select></p>
       <p> Show From Date:
-      <input type="date" name="mapDate" id="mapDate"
-       value='2020-05-18' onchange='updateMap()'></p>
+      <input type="date" name="mapDate" id="mapDate" value='2020-05-30' onchange='updateMap()'></p>
        <p> Choose Graph Scale:
        <select id='chooseScale' onchange='updateMap()'>
          <option value='linear'>Linear</option>
@@ -43,11 +42,7 @@
 <script>
 
 
-function updateSliderValue(sliderId, showValueId){
-  var param1Slider = document.getElementById(sliderId)
-  var showParam1Value = document.getElementById(showValueId)
-  showParam1Value.innerHTML = param1Slider.value;
-}
+
 states_hash =
   {
     'Alabama': 'AL',
@@ -113,6 +108,8 @@ states_hash =
 
 stateDropdown()
 updateMap()
+
+
 
 function updateMap() {
   date = d3.select("#mapDate")._groups[0][0].value
