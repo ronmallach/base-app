@@ -457,9 +457,12 @@ def run_COVID_sim(decision, path, write = 'Y'):
     
 
     
-def run_simulation(state, decision):
+def run_simulation(state, decision, flask=False):
     path = os.getcwd()
-    # data_path = os.path.join(path, 'app\\COVID19master\\data\\policy_example.xlsx')
+    # if flask == True:
+    #     data_path = os.path.join(path, 'app\\COVID19master\\data\\policy_example.xlsx')
+    # else:
+    #     data_path = os.path.join(path, 'COVID19master\\data\\policy_example.xlsx')        
     # decision = rp.read_policy(data_path)
     T_max = decision.shape[0]
     setup_COVID_sim(state, path, T_max) 

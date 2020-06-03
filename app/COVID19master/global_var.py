@@ -137,7 +137,8 @@ def setup_global_variables(state, inv_dt1, T_max_, lead_time_, time_unit_, beta_
 # cwd: the current working directory of running code
 def read_actual_data(state, cwd):
 #    excel1 = os.path.join(cwd,'data/actual_valid_data.xlsx')
-    excel1 = os.path.join(cwd,'app\\COVID19master\\data\\actual_valid_data.xlsx')
+#    excel1 = os.path.join(cwd,'COVID19master\\data\\actual_valid_data.xlsx')
+    excel1 = os.path.join(cwd,'COVID19master\\data\\actual_valid_data.xlsx')
     df = pd.read_excel(excel1, sheet_name='Sheet1')
     df_state = df[df['state'] == state]
     # df_state_1 = df_state[['date', 'positive','death', 'hospitalized']]
@@ -147,7 +148,8 @@ def read_actual_data(state, cwd):
                       'hospitalized': 'actual cumulative hospitalized'}, inplace=True)
 
 #    excel2 = os.path.join(cwd, 'data/RL_input.xlsx')
-    excel2 = os.path.join(cwd, 'app\\COVID19master\\data\\RL_input.xlsx')
+    #excel2 = os.path.join(cwd, 'app\\COVID19master\\data\\RL_input.xlsx')
+    excel2 = os.path.join(cwd, 'COVID19master\\data\\RL_input.xlsx')
     df2 = pd.read_excel(excel2, sheet_name = 'actual_unemploy')
     df2_state = df2.loc[:, ('Date', state)]
     df2_state.rename(columns = {state: 'Actual unemployment rate'}, inplace = True)
@@ -165,10 +167,14 @@ def read_sim_input(state, cwd):
     # excel2 = os.path.join(cwd, 'data/pop_dist.xlsx')
     # excel3 = os.path.join(cwd, 'data/actual_valid_data.xlsx')
     # excel4 = os.path.join(cwd,'data/states_beta.xlsx')
-    excel1= os.path.join(cwd,'app\\COVID19master\\data\\COVID_input_parameters.xlsx')
-    excel2 = os.path.join(cwd, 'app\\COVID19master\\data\\pop_dist.xlsx')
-    excel3 = os.path.join(cwd, 'app\\COVID19master\\data\\actual_valid_data.xlsx')
-    excel4 = os.path.join(cwd,'app\\COVID19master\\data\\states_beta.xlsx')
+    # excel1= os.path.join(cwd,'app\\COVID19master\\data\\COVID_input_parameters.xlsx')
+    # excel2 = os.path.join(cwd, 'app\\COVID19master\\data\\pop_dist.xlsx')
+    # excel3 = os.path.join(cwd, 'app\\COVID19master\\data\\actual_valid_data.xlsx')
+    # excel4 = os.path.join(cwd,'app\\COVID19master\\data\\states_beta.xlsx')
+    excel1= os.path.join(cwd,'COVID19master\\data\\COVID_input_parameters.xlsx')
+    excel2 = os.path.join(cwd, 'COVID19master\\data\\pop_dist.xlsx')
+    excel3 = os.path.join(cwd, 'COVID19master\\data\\actual_valid_data.xlsx')
+    excel4 = os.path.join(cwd,'COVID19master\\data\\states_beta.xlsx')
 
     # read blank Q-matrix 
     q_mat_blank = pd.read_excel(excel1, sheet_name = 'q-mat_blank') 
@@ -281,7 +287,8 @@ def diag_indices_loc(Q):
 # cwd: the current working directory of running code
 def read_date(state, cwd):
     #excel1 = os.path.join(cwd,'data/actual_valid_data.xlsx')
-    excel1 = os.path.join(cwd,'app\\COVID19master\\data\\actual_valid_data.xlsx')
+    #excel1 = os.path.join(cwd,'app\\COVID19master\\data\\actual_valid_data.xlsx')
+    excel1 = os.path.join(cwd,'COVID19master\\data\\actual_valid_data.xlsx')
     raw_valid_data = pd.read_excel(excel1, sheet_name='Sheet1')
     raw_valid_data_v = raw_valid_data.values
     state_index = np.where(raw_valid_data_v==state)
@@ -291,7 +298,8 @@ def read_date(state, cwd):
     d1 = final_simul_start_date
     begin_simul_rl_date = str(valid_data_v[min(np.where(valid_data_v[:,2] > 0)[0]), 0])
     #excel2= os.path.join(cwd,'data/COVID_input_parameters.xlsx')
-    excel2= os.path.join(cwd,'app\\COVID19master\\data\\COVID_input_parameters.xlsx')
+    #excel2= os.path.join(cwd,'app\\COVID19master\\data\\COVID_input_parameters.xlsx')
+    excel2= os.path.join(cwd,'COVID19master\\data\\COVID_input_parameters.xlsx')
     sd_date = pd.read_excel(excel2, sheet_name='sd_date') 
     sd_date_v = sd_date.values 
     sd_start_date_state = str(sd_date_v[np.where(sd_date_v == state)[0][0],1])
@@ -309,7 +317,8 @@ def read_date(state, cwd):
 def read_RL_inputs(state, start_sim_date, cwd):
     # read data
     #excel = os.path.join(cwd, 'data/RL_input.xlsx')
-    excel = os.path.join(cwd, 'app\\COVID19master\\data\\RL_input.xlsx')
+    #excel = os.path.join(cwd, 'app\\COVID19master\\data\\RL_input.xlsx')
+    excel = os.path.join(cwd, 'COVID19master\\data\\RL_input.xlsx')
     df = pd.ExcelFile(excel)
     # read VSL
     VSL1 = df.parse(sheet_name='VSL_mod')
@@ -364,7 +373,8 @@ def read_RL_inputs(state, start_sim_date, cwd):
 
 def read_decisions(cwd):
     # = os.path.join(cwd, 'data/decision_making.csv')
-    dir_ = os.path.join(cwd, 'app\\COVID19master\\data\\decision_making.csv')
+    #dir_ = os.path.join(cwd, 'app\\COVID19master\\data\\decision_making.csv')
+    dir_ = os.path.join(cwd, 'COVID19master\\data\\decision_making.csv')
     df = pd.read_csv(dir_) 
     df_v = df.to_numpy(dtype = float)
     x = np.copy(df_v[:,1:])
