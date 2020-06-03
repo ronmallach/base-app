@@ -63,10 +63,11 @@ def calibrate_model():
     #q_mat_blank = pd.read_excel(path, sheet_name='Decision')
     #print(time.time() - t)
     covid_model = COVID_model.run_calibration(state='NY', decision=rl_input, heroku=heroku)
-    results = COVID_model.run_simulation(covid_model, state = "NY", decision = rl_input, heroku=heroku)
-    for k,v in results.items():
-        results[k].index = results[k].index.astype(str)
-    to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
+    # results = COVID_model.run_simulation(covid_model, state = "NY", decision = rl_input, heroku=heroku)
+    # for k,v in results.items():
+    #     results[k].index = results[k].index.astype(str)
+    # to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
+    to_java = json.dumps({'hello':'it works'})
     #print(time.time() - t)
     return jsonify(status='success', data=to_java)
 
