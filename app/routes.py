@@ -62,9 +62,9 @@ def calibrate_model():
     results = COVID_model.run_simulation(state = "NY", decision = rl_input)
     for k,v in results.items():
         results[k].index = results[k].index.astype(str)
-    # to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
-    #to_java = json.dumps({})
-    to_java = json.dumps({0: cwd, 1:what, 2:what1, 3:what2, 4:what3, 5:str(results)}) #2:what})
+    to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
+    # #to_java = json.dumps({})
+    # to_java = json.dumps({0: cwd, 1:what, 2:what1, 3:what2, 4:what3, 5:str(results)}) #2:what})
     return jsonify(status='success', data=to_java)
 
 # @bp.route('/login', methods=['GET', 'POST'])
