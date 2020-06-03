@@ -1,12 +1,19 @@
 import numpy as np 
 import pandas as pd
 import os
+import time
 import datetime
+# #import pdb # RON EDIT
+
 
 from app.COVID19master import global_var as gv # RON EDIT
 from app.COVID19master import outputs as op # RON EDIT
-#import pdb # RON EDIT
 from app.COVID19master import read_policy_mod as rp # RON EDIT
+
+# import global_var as gv # RON EDIT
+# import outputs as op # RON EDIT
+# import read_policy_mod as rp # RON EDIT
+
 
 class CovidModel():
     def __init__(self, path, decision):
@@ -402,42 +409,44 @@ class CovidModel():
    
         # print("reset rl end")
         
-def setup_COVID_sim(state, path, T_max):             
-    inv_dt = 10                 # insert time steps within each day
+def setup_COVID_sim(state, path, T_max, heroku=False):             
+    inv_dt = 1               # insert time steps within each day
     T_max_ = T_max              # insert maximum simulation time period since the dry run was done
     lead_time_ = 0              # insert the time period before the action takes effect 
     time_unit_ = 'day'          # you want to model the simualtion for a couple of days, months, years 
     beta_user_defined_ = 0      # insert transmission parameter to simulate; default: 0 
                                 #(in case user wanna demonstrate some tranmission parameters)
-
     # set up global variables 
-    gv.setup_global_variables(state, inv_dt,  T_max_, lead_time_, time_unit_, beta_user_defined_, path)
+    gv.setup_global_variables(state, inv_dt,  T_max_, lead_time_, time_unit_,
+                              beta_user_defined_, path, heroku=heroku)
 
-def run_COVID_sim(decision, path, write = 'Y'):
-
-    sample_model = CovidModel(path, decision)
+def run_COVID_sim(model, decision, path, write = 'Y'):
+    t = time.time()
+    #sample_model = CovidModel(path, decision)
+    print('model made', time.time() - t)
     i = 0
     d_m = decision[i]
-    while sample_model.t < sample_model.T_total:
+    while model.t < model.T_total:
+        print('t', model.t, time.time()-t)
         #print(sample_model.t)
         # print("##### step begin #####")
         # print('The code is running')
-        sample_model.t += 1 
+        model.t += 1 
         # print('t', sample_model.t)
-        if i % sample_model.inv_dt == 0:
-            d_m = decision[i//sample_model.inv_dt]
-        sample_model.step(action_t = d_m)
+        if i % model.inv_dt == 0:
+            d_m = decision[i//model.inv_dt]
+        model.step(action_t = d_m)
         i += 1
         # print("##### step end ##### \n")
 
     #gv.prog_bar.finish()
+    
+    df1 = model.op_ob.plot_decision_output_1()
 
-    df1 = sample_model.op_ob.plot_decision_output_1()
-
-    df2= sample_model.op_ob.plot_decision_output_2(gv.acutal_unemp)
-    df3 = sample_model.op_ob.plot_decision_output_3()
-    df4 = sample_model.op_ob.plot_cum_output(gv.actual_data)
-    df5 = sample_model.op_ob.plot_decison()
+    df2= model.op_ob.plot_decision_output_2(gv.acutal_unemp)
+    df3 = model.op_ob.plot_decision_output_3()
+    df4 = model.op_ob.plot_cum_output(gv.actual_data)
+    df5 = model.op_ob.plot_decison()
     # # sample_model.op_ob.plot_time_output()
     #return df1, df2
     if write == 'Y':
@@ -456,17 +465,21 @@ def run_COVID_sim(decision, path, write = 'Y'):
 #     output = run_COVID_sim(path = path, decision = decision)
     
 
-    
-def run_simulation(state, decision, flask=False):
+
+def run_calibration(state, decision, heroku=False):
     path = os.getcwd()
-    # if flask == True:
-    #     data_path = os.path.join(path, 'app\\COVID19master\\data\\policy_example.xlsx')
-    # else:
-    #     data_path = os.path.join(path, 'COVID19master\\data\\policy_example.xlsx')        
-    # decision = rp.read_policy(data_path)
     T_max = decision.shape[0]
-    setup_COVID_sim(state, path, T_max) 
-    output = run_COVID_sim(path = path, decision = decision, write='N')
+    t = time.time()
+    setup_COVID_sim(state, path, T_max, heroku=heroku) 
+    print('setup', time.time()-t)
+    sample_model = CovidModel(path, decision)
+    print('made sample', time.time()-t)
+    return sample_model   
+    
+
+def run_simulation(model, state, decision, heroku=False):
+    path = os.getcwd()
+    output = run_COVID_sim(model, path = path, decision = decision, write='N')
     return output    
 
     

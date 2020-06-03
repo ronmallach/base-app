@@ -10,6 +10,7 @@ import pandas as pd
 from app.COVID19master import COVID_model
 from app.COVID19master import read_policy_mod
 import numpy as np
+import time
 # import app.COVID_model
 # import app.read_policy_mod
 #from app.load import load
@@ -19,6 +20,8 @@ import numpy as np
 #from flask_login import current_user, login_user, logout_user, login_required
 import json
 import os
+
+covid_model='dummy'
 
 bp = Blueprint('blueprint', __name__)
 
@@ -41,30 +44,53 @@ def download_newfile():
 
 @bp.route('/calibrate_model', methods=('GET','POST'))
 def calibrate_model():
+    #global covid_model
+    #t = time.time()
     get = request.get_json() # retrieve input data from ajax request
     to_df = {}
     for i,v in enumerate(get):
         to_df[i] = v
     df = pd.DataFrame.from_dict(to_df,orient='index')
     rl_input = read_policy_mod.read_policy(df)
-    cwd = os.getcwd()
-    #excel1= os.path.join(cwd,'app\\COVID19master\\data\\COVID_input_parameters.json')
-    #path = 'policy_example.xlsx'
-    #excel1 = os.path.join(cwd,'COVID19master/data/COVID_input_parameters.json')
-    #test = json.load(open(excel1))
-    what = os.listdir(cwd)
-    what1 = os.listdir(os.path.join(cwd, 'app'))
-    what2 = os.listdir(os.path.join(cwd, 'app/COVID19master'))
-    what3 = os.listdir(os.path.join(cwd, 'app/COVID19master/data'))
+    heroku = True
+    
+    if heroku == False:
+        what = os.listdir(os.path.join(os.getcwd(), 'app\\COVID19master\\data'))
+    else:
+        what = os.listdir(os.path.join(os.getcwd(), 'app/COVID19master/data'))
     # load_path = os.path.join(cwd, 'app/COVID19master/data/COVID_input_parameters.xlsx')
     # test = pd.read_excel(load_path, sheet_name = 'q-mat_blank')
     #q_mat_blank = pd.read_excel(path, sheet_name='Decision')
-    results = COVID_model.run_simulation(state = "NY", decision = rl_input)
+    #print(time.time() - t)
+    covid_model = COVID_model.run_calibration(state='NY', decision=rl_input, heroku=heroku)
+    results = COVID_model.run_simulation(covid_model, state = "NY", decision = rl_input, heroku=heroku)
     for k,v in results.items():
         results[k].index = results[k].index.astype(str)
     to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
-    # #to_java = json.dumps({})
-    # to_java = json.dumps({0: cwd, 1:what, 2:what1, 3:what2, 4:what3, 5:str(results)}) #2:what})
+    #print(time.time() - t)
+    return jsonify(status='success', data=to_java)
+
+@bp.route('/simulate_model', methods=('GET','POST'))
+def simulate_model(covid_model=covid_model):
+    print(covid_model)
+    t = time.time()
+    get = request.get_json() # retrieve input data from ajax request
+    to_df = {}
+    for i,v in enumerate(get):
+        to_df[i] = v
+    df = pd.DataFrame.from_dict(to_df,orient='index')
+    rl_input = read_policy_mod.read_policy(df)
+    heroku = False
+    if heroku == False:
+        what = os.listdir(os.path.join(os.getcwd(), 'app\\COVID19master\\data'))
+    else:
+        what = os.listdir(os.path.join(os.getcwd(), 'app/COVID19master/data'))
+        
+    results = COVID_model.run_simulation(covid_model, state = "NY", decision = rl_input, heroku=heroku)
+    for k,v in results.items():
+        results[k].index = results[k].index.astype(str)
+    to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
+    print(time.time() - t)
     return jsonify(status='success', data=to_java)
 
 # @bp.route('/login', methods=['GET', 'POST'])

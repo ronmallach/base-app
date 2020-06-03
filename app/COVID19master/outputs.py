@@ -1,10 +1,15 @@
 import numpy as np
+import pandas as pd
+#from matplotlib.ticker import FuncFormatter
 #import matplotlib.pyplot as plt
 #from pylab import rcParams
 #import pdb
+
+
 from app.COVID19master import global_var as gv
-import pandas as pd
-#from matplotlib.ticker import FuncFormatter
+#import global_var as gv
+
+
 
 class output_var:
 

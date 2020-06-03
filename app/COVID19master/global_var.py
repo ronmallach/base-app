@@ -4,7 +4,8 @@ import numpy as np
 import os
 #from progress.bar import IncrementalBar
 
-def setup_global_variables(state, inv_dt1, T_max_, lead_time_, time_unit_, beta_user_defined_, path):
+def setup_global_variables(state, inv_dt1, T_max_, lead_time_, time_unit_,
+                           beta_user_defined_, path, heroku=False):
     ##### do not change ######
     global tot_risk
     tot_risk = 2
@@ -38,7 +39,7 @@ def setup_global_variables(state, inv_dt1, T_max_, lead_time_, time_unit_, beta_
     ##### user defined input #######
 
     ##### read simulation input #######
-    sim_result = read_sim_input(state = enter_state, cwd = path)
+    sim_result = read_sim_input(state = enter_state, cwd = path, heroku=heroku)
 
     final_simul_start_date = sim_result[0]
 
@@ -90,7 +91,9 @@ def setup_global_variables(state, inv_dt1, T_max_, lead_time_, time_unit_, beta_
     diag_indices = diag_indices_loc(Q)
 
     ##### read RL input #######
-    rl_result = read_RL_inputs(state = enter_state, start_sim_date = final_simul_start_date, cwd = path)
+    rl_result = read_RL_inputs(state = enter_state,
+                               start_sim_date = final_simul_start_date,
+                               cwd = path, heroku=heroku)
 
     global VSL
     VSL = rl_result[0]
@@ -116,29 +119,35 @@ def setup_global_variables(state, inv_dt1, T_max_, lead_time_, time_unit_, beta_
     global test
     test = rl_result[7]
     
-    prog_d = days_of_simul_pre_sd + days_of_simul_post_sd + T_max
+    #prog_d = days_of_simul_pre_sd + days_of_simul_post_sd + T_max
     #global prog_bar      # progress bar to show how long until the end of running code
     #prog_bar = IncrementalBar('Code In Progess: \t', max = prog_d + 1)
 
     global actual_data 
     global acutal_unemp
-    actual_data, acutal_unemp = read_actual_data(state = enter_state, cwd = path)
+    actual_data, acutal_unemp = read_actual_data(state = enter_state,
+                                                 cwd = path, heroku=heroku)
 
     print('\n')
 
     global decision
     global decision_week
-    decision_week = read_decisions(cwd = path)
+    decision_week = read_decisions(cwd = path, heroku=heroku)
 
 
 # Function to read actual data
 # Input parameters:
 # state: the State you want to model
 # cwd: the current working directory of running code
-def read_actual_data(state, cwd):
+def read_actual_data(state, cwd, heroku=False):
 #    excel1 = os.path.join(cwd,'data/actual_valid_data.xlsx')
-#    excel1 = os.path.join(cwd,'COVID19master\\data\\actual_valid_data.xlsx')
-    excel1 = os.path.join(cwd,'app/COVID19master/data/actual_valid_data.xlsx')
+    if heroku == False:
+        excel1 = os.path.join(cwd,'app\\COVID19master\\data\\actual_valid_data.xlsx')
+        excel2 = os.path.join(cwd, 'app\\COVID19master\\data\\RL_input.xlsx')
+    else:
+        excel1 = os.path.join(cwd,'app/COVID19master/data/actual_valid_data.xlsx')
+        excel2 = os.path.join(cwd, 'app/COVID19master/data/RL_input.xlsx')
+
     df = pd.read_excel(excel1, sheet_name='Sheet1')
     df_state = df[df['state'] == state]
     # df_state_1 = df_state[['date', 'positive','death', 'hospitalized']]
@@ -148,8 +157,6 @@ def read_actual_data(state, cwd):
                       'hospitalized': 'actual cumulative hospitalized'}, inplace=True)
 
 #    excel2 = os.path.join(cwd, 'data/RL_input.xlsx')
-    #excel2 = os.path.join(cwd, 'app\\COVID19master\\data\\RL_input.xlsx')
-    excel2 = os.path.join(cwd, 'app/COVID19master/data/RL_input.xlsx')
     df2 = pd.read_excel(excel2, sheet_name = 'actual_unemploy')
     df2_state = df2.loc[:, ('Date', state)]
     df2_state.rename(columns = {state: 'Actual unemployment rate'}, inplace = True)
@@ -162,19 +169,21 @@ def read_actual_data(state, cwd):
 
 
 # Function to read simulation related parameters
-def read_sim_input(state, cwd):
+def read_sim_input(state, cwd, heroku=False):
     # excel1= os.path.join(cwd,'data/COVID_input_parameters.xlsx')
     # excel2 = os.path.join(cwd, 'data/pop_dist.xlsx')
     # excel3 = os.path.join(cwd, 'data/actual_valid_data.xlsx')
     # excel4 = os.path.join(cwd,'data/states_beta.xlsx')
-    # excel1= os.path.join(cwd,'app\\COVID19master\\data\\COVID_input_parameters.xlsx')
-    # excel2 = os.path.join(cwd, 'app\\COVID19master\\data\\pop_dist.xlsx')
-    # excel3 = os.path.join(cwd, 'app\\COVID19master\\data\\actual_valid_data.xlsx')
-    # excel4 = os.path.join(cwd,'app\\COVID19master\\data\\states_beta.xlsx')
-    excel1= os.path.join(cwd,'app/COVID19master/data/COVID_input_parameters.xlsx')
-    excel2 = os.path.join(cwd, 'app/COVID19master/data/pop_dist.xlsx')
-    excel3 = os.path.join(cwd, 'app/COVID19master/data/actual_valid_data.xlsx')
-    excel4 = os.path.join(cwd,'app/COVID19master/data/states_beta.xlsx')
+    if heroku == False:
+        excel1= os.path.join(cwd,'app\\COVID19master\\data\\COVID_input_parameters.xlsx')
+        excel2 = os.path.join(cwd, 'app\\COVID19master\\data\\pop_dist.xlsx')
+        excel3 = os.path.join(cwd, 'app\\COVID19master\\data\\actual_valid_data.xlsx')
+        excel4 = os.path.join(cwd,'app\\COVID19master\\data\\states_beta.xlsx')
+    else:
+        excel1= os.path.join(cwd,'app/COVID19master/data/COVID_input_parameters.xlsx')
+        excel2 = os.path.join(cwd, 'app/COVID19master/data/pop_dist.xlsx')
+        excel3 = os.path.join(cwd, 'app/COVID19master/data/actual_valid_data.xlsx')
+        excel4 = os.path.join(cwd,'app/COVID19master/data/states_beta.xlsx')
 
     # read blank Q-matrix 
     q_mat_blank = pd.read_excel(excel1, sheet_name = 'q-mat_blank') 
@@ -285,10 +294,18 @@ def diag_indices_loc(Q):
 # Input parameters:
 # state: the State you want to model
 # cwd: the current working directory of running code
-def read_date(state, cwd):
+def read_date(state, cwd, heroku=False):
     #excel1 = os.path.join(cwd,'data/actual_valid_data.xlsx')
     #excel1 = os.path.join(cwd,'app\\COVID19master\\data\\actual_valid_data.xlsx')
-    excel1 = os.path.join(cwd,'app/COVID19master/data/actual_valid_data.xlsx')
+    if heroku == False:
+        excel1 = os.path.join(cwd,'app\\COVID19master\\data\\actual_valid_data.xlsx')
+        excel2 = os.path.join(cwd, 'app\\COVID19master\\data\\COVID_input_parameters.xlsx')
+    else:
+        excel1 = os.path.join(cwd,'app/COVID19master/data/actual_valid_data.xlsx')
+        excel2 = os.path.join(cwd, 'app/COVID19master/data/COVID_input_parameters.xlsx')
+
+
+    #excel1 = os.path.join(cwd,'app/COVID19master/data/actual_valid_data.xlsx')
     raw_valid_data = pd.read_excel(excel1, sheet_name='Sheet1')
     raw_valid_data_v = raw_valid_data.values
     state_index = np.where(raw_valid_data_v==state)
@@ -299,7 +316,7 @@ def read_date(state, cwd):
     begin_simul_rl_date = str(valid_data_v[min(np.where(valid_data_v[:,2] > 0)[0]), 0])
     #excel2= os.path.join(cwd,'data/COVID_input_parameters.xlsx')
     #excel2= os.path.join(cwd,'app\\COVID19master\\data\\COVID_input_parameters.xlsx')
-    excel2= os.path.join(cwd,'app/COVID19master/data/COVID_input_parameters.xlsx')
+    #excel2= os.path.join(cwd,'app/COVID19master/data/COVID_input_parameters.xlsx')
     sd_date = pd.read_excel(excel2, sheet_name='sd_date') 
     sd_date_v = sd_date.values 
     sd_start_date_state = str(sd_date_v[np.where(sd_date_v == state)[0][0],1])
@@ -314,11 +331,14 @@ def read_date(state, cwd):
 # state - State you want to model
 # start_sim_date -  start date of simulation 
 # cwd - the current working directy for running code
-def read_RL_inputs(state, start_sim_date, cwd):
+def read_RL_inputs(state, start_sim_date, cwd, heroku=False):
     # read data
     #excel = os.path.join(cwd, 'data/RL_input.xlsx')
     #excel = os.path.join(cwd, 'app\\COVID19master\\data\\RL_input.xlsx')
-    excel = os.path.join(cwd, 'app/COVID19master/data/RL_input.xlsx')
+    if heroku == False:
+        excel = os.path.join(cwd,'app\\COVID19master\\data\\RL_input.xlsx')
+    else:
+        excel = os.path.join(cwd, 'app/COVID19master/data/RL_input.xlsx')
     df = pd.ExcelFile(excel)
     # read VSL
     VSL1 = df.parse(sheet_name='VSL_mod')
@@ -371,10 +391,13 @@ def read_RL_inputs(state, start_sim_date, cwd):
 # [7] = test - A list of size 1x3 which is the cost of symptom-based testing, contact tracing and universal testing
 
 
-def read_decisions(cwd):
+def read_decisions(cwd, heroku=False):
     # = os.path.join(cwd, 'data/decision_making.csv')
     #dir_ = os.path.join(cwd, 'app\\COVID19master\\data\\decision_making.csv')
-    dir_ = os.path.join(cwd, 'app/COVID19master/data/decision_making.csv')
+    if heroku == False:
+        dir_ = os.path.join(cwd,'app\\COVID19master\\data\\decision_making.csv')
+    else:
+        dir_ = os.path.join(cwd, 'app/COVID19master/data/decision_making.csv')
     df = pd.read_csv(dir_) 
     df_v = df.to_numpy(dtype = float)
     x = np.copy(df_v[:,1:])

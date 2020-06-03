@@ -16,6 +16,7 @@
     <button class='w3-button w3-dark-grey' onclick='clip()'>4. Upload Data</button>
     <p></p>
     <button class='w3-button w3-dark-grey' onclick='calibrate()'>5. Calibrate Models</button>
+    <button class='w3-button w3-dark-grey' onclick='simulate()'>5. Simulate Models</button>
   </div>
   <div class='w3-col s6' style="overflow-y:scroll; height:90vh">
     <table id=usertable class='w3-table-all w3-hoverable w3-tiny w3-centered'></table>
@@ -74,6 +75,20 @@ function calibrate(){
   $.ajax({
         type: "POST",
         url: "calibrate_model", // url on python side
+        data: JSON.stringify(to_python),
+        contentType: "application/json",
+        success: function (dataset) {
+          all_data = dataset.data;
+          console.log(all_data)
+        },
+  });
+}
+
+function simulate(){
+  to_python = tableToJson("usertable")
+  $.ajax({
+        type: "POST",
+        url: "simulate_model", // url on python side
         data: JSON.stringify(to_python),
         contentType: "application/json",
         success: function (dataset) {
