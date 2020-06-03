@@ -54,13 +54,14 @@ def calibrate_model():
     #test = json.load(open(excel1))
     what = os.listdir(cwd)
     what1 = os.listdir(os.path.join(cwd, 'app'))
+    what2 = os.listdir(os.path.join(cwd, 'app/COVID19master'))
     #q_mat_blank = pd.read_excel(path, sheet_name='Decision')
     # results = COVID_model.run_simulation(state = "NY", decision = rl_input)
     # for k,v in results.items():
     #     results[k].index = results[k].index.astype(str)
     # to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
     #to_java = json.dumps({})
-    to_java = json.dumps({0: cwd, 1:what, 2:what1}) #2:what})
+    to_java = json.dumps({0: cwd, 1:what, 2:what1, 3:what2}) #2:what})
     return jsonify(status='success', data=to_java)
 
 # @bp.route('/login', methods=['GET', 'POST'])
