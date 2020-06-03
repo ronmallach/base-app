@@ -57,7 +57,7 @@ def calibrate_model():
     #     results[k].index = results[k].index.astype(str)
     # to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
     #to_java = json.dumps({})
-    to_java = json.dumps({0: excel1, 1:q_mat_blank.to_dict('index')})
+    to_java = json.dumps({0: 'it load'})
     return jsonify(status='success', data=to_java)
 
 # @bp.route('/login', methods=['GET', 'POST'])
