@@ -9,6 +9,7 @@ from app.models import User
 import pandas as pd
 from app.COVID19master import COVID_model
 from app.COVID19master import read_policy_mod
+import numpy as np
 # import app.COVID_model
 # import app.read_policy_mod
 #from app.load import load
@@ -45,12 +46,12 @@ def calibrate_model():
     for i,v in enumerate(get):
         to_df[i] = v
     df = pd.DataFrame.from_dict(to_df,orient='index')
-    print(df)
-    # results = COVID_model.run_simulation(state="NY")
+    rl_input = read_policy_mod.read_policy(df)
+    # results = COVID_model.run_simulation(state = "NY", decision = rl_input)
     # for k,v in results.items():
     #     results[k].index = results[k].index.astype(str)
     # to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
-    to_java = json.dumps(df.to_dict('index'))
+    to_java = json.dumps({})
     return jsonify(status='success', data=to_java)
 
 # @bp.route('/login', methods=['GET', 'POST'])

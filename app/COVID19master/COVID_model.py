@@ -457,10 +457,10 @@ def run_COVID_sim(decision, path, write = 'Y'):
     
 
     
-def run_simulation(state):
+def run_simulation(state, decision):
     path = os.getcwd()
-    data_path = os.path.join(path, 'app\\COVID19master\\data\\policy_example.xlsx')
-    decision = rp.read_policy(data_path)
+    # data_path = os.path.join(path, 'app\\COVID19master\\data\\policy_example.xlsx')
+    # decision = rp.read_policy(data_path)
     T_max = decision.shape[0]
     setup_COVID_sim(state, path, T_max) 
     output = run_COVID_sim(path = path, decision = decision, write='N')
