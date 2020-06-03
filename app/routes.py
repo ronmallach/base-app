@@ -49,8 +49,9 @@ def calibrate_model():
     rl_input = read_policy_mod.read_policy(df)
     cwd = os.getcwd()
     #excel1= os.path.join(cwd,'app\\COVID19master\\data\\COVID_input_parameters.json')
-    excel1 = os.path.join(cwd,'COVID19master/data/COVID_input_parameters.json')
-    q_mat_blank = pd.read_json(excel1)
+    path = 'policy_example.xlsx'
+    #excel1 = os.path.join(cwd,'COVID19master/data/COVID_input_parameters.json')
+    q_mat_blank = pd.read_excel(path, sheet_name='Decision')
     # results = COVID_model.run_simulation(state = "NY", decision = rl_input)
     # for k,v in results.items():
     #     results[k].index = results[k].index.astype(str)
