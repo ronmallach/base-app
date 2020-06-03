@@ -49,8 +49,8 @@ def calibrate_model():
     rl_input = read_policy_mod.read_policy(df)
     cwd = os.getcwd()
     excel1= os.path.join(cwd,'COVID19master\\data\\COVID_input_parameters.xlsx')
-    q_mat_blank = pd.read_excel(excel1, sheet_name = 'q-mat_blank') 
-    print(q_mat_blank)
+    #q_mat_blank = pd.read_excel(excel1, sheet_name = 'q-mat_blank') 
+    #print(q_mat_blank)
     # results = COVID_model.run_simulation(state = "NY", decision = rl_input)
     # for k,v in results.items():
     #     results[k].index = results[k].index.astype(str)
