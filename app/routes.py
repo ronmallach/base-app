@@ -47,12 +47,16 @@ def calibrate_model():
         to_df[i] = v
     df = pd.DataFrame.from_dict(to_df,orient='index')
     rl_input = read_policy_mod.read_policy(df)
-    results = COVID_model.run_simulation(state = "NY", decision = rl_input)
-    for k,v in results.items():
-        results[k].index = results[k].index.astype(str)
-    to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
+    cwd = os.getcwd()
+    excel1= os.path.join(cwd,'COVID19master\\data\\COVID_input_parameters.xlsx')
+    q_mat_blank = pd.read_excel(excel1, sheet_name = 'q-mat_blank') 
+    print(q_mat_blank)
+    # results = COVID_model.run_simulation(state = "NY", decision = rl_input)
+    # for k,v in results.items():
+    #     results[k].index = results[k].index.astype(str)
+    # to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
     #to_java = json.dumps({})
-    #to_java = json.dumps({0: os.getcwd()})
+    to_java = json.dumps({0: excel1})
     return jsonify(status='success', data=to_java)
 
 # @bp.route('/login', methods=['GET', 'POST'])
