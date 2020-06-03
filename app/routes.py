@@ -55,6 +55,7 @@ def calibrate_model():
     what = os.listdir(cwd)
     what1 = os.listdir(os.path.join(cwd, 'app'))
     what2 = os.listdir(os.path.join(cwd, 'app/COVID19master'))
+    what3 = os.listdir(os.path.join(cwd, 'app/COVID19master/data'))
     load_path = os.path.join(cwd, 'app/COVID19master/data/COVID_input_parameters.xlsx')
     test = pd.read_excel(load_path, sheet_name = 'q-mat_blank')
     #q_mat_blank = pd.read_excel(path, sheet_name='Decision')
