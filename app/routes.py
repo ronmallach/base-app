@@ -45,10 +45,12 @@ def calibrate_model():
     for i,v in enumerate(get):
         to_df[i] = v
     df = pd.DataFrame.from_dict(to_df,orient='index')
-    results = COVID_model.run_simulation(state="NY")
-    for k,v in results.items():
-        results[k].index = results[k].index.astype(str)
-    to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
+    print(df)
+    # results = COVID_model.run_simulation(state="NY")
+    # for k,v in results.items():
+    #     results[k].index = results[k].index.astype(str)
+    # to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
+    to_java = json.dumps(df.to_dict('index'))
     return jsonify(status='success', data=to_java)
 
 # @bp.route('/login', methods=['GET', 'POST'])
