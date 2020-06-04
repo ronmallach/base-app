@@ -6,22 +6,36 @@
   <div class="w3-col w3-border s2" id="pastePanel">
     <p> Lets type up some instructions here </p>
     <a href="{{ url_for('blueprint.download_newfile') }}">1. Download Template</a>
-    <textarea type='text' id='userpaste' placeholder='2. Paste Excel Data Here'></textarea>
-    <p>3. What is this input Data?</p>
-    <select id='calOrpol' class='w3-select w3-border'>
-      <option value="calibrate">Historical Data</option>
-      <option value="policy">Policy Implementation</option>
-    </select>
+    <textarea type='text' id='userpaste' onchange='clip()' placeholder='2. Edit Table or Paste New Values Here'>
+      Start day (Contact Reduction)	Contact Reduction (0 to 1)	Start day (Contact Tracing)	Tests per day (Contact Tracing)	Start day (Universal Testing)	Tests per day (Universal Tracing)
+      0	0.5	0	100	0	10
+      31	0.3	28	300	13	20
+      63	0.2	100	300	31	100
+      78	0			100	100
+      100	0
+
+
+
+
+
+    </textarea>
+      <button class='w3-button w3-dark-grey' onclick='graph_policy()'>3. Upload Data</button>
+    <p>4. Choose a State
+    <select id='simState' onchange='graph_state()' style='width:50%'>
+      <option value="New York">New York</option>
+    </select></p>
     <p></p>
-    <button class='w3-button w3-dark-grey' onclick='clip()'>4. Upload Data</button>
-    <p></p>
-    <button class='w3-button w3-dark-grey' onclick='calibrate()'>5. Calibrate Models</button>
-    <button class='w3-button w3-dark-grey' onclick='simulate()'>5. Simulate Models</button>
+    <button class='w3-button w3-dark-grey' onclick='calibrate()'>5. Run Simulation</button>
   </div>
   <div class='w3-col s6' style="overflow-y:scroll; height:90vh">
     <table id=usertable class='w3-table-all w3-hoverable w3-tiny w3-centered'></table>
+    <div>
+      <div class='w3-border w3-col s4' id=inputGraphContactReduction></div>
+      <div class='w3-border w3-col s4' id=inputGraphContactTracing></div>
+      <div class='w3-border w3-col s4' id=inputGraphUniversalTracing></div>
+    </div>
   </div>
-  <div class='w3-col s3' style="overflow-y:scroll; height:90vh">
+  <div class='w3-col s4' style="overflow-y:scroll; height:90vh">
     <div class='w3-border' id=inputGraphCases></div>
     <div class='w3-border' id=inputGraphHospital></div>
     <div class='w3-border' id=inputGraphDeath></div>
@@ -30,6 +44,80 @@
 </div>
 
 <script>
+states_hash =
+  {
+    'Alabama': 'AL',
+    'Alaska': 'AK',
+    'American Samoa': 'AS',
+    'Arizona': 'AZ',
+    'Arkansas': 'AR',
+    'California': 'CA',
+    'Colorado': 'CO',
+    'Connecticut': 'CT',
+    'Delaware': 'DE',
+    'District Of Columbia': 'DC',
+    'Federated States Of Micronesia': 'FM',
+    'Florida': 'FL',
+    'Georgia': 'GA',
+    'Guam': 'GU',
+    'Hawaii': 'HI',
+    'Idaho': 'ID',
+    'Illinois': 'IL',
+    'Indiana': 'IN',
+    'Iowa': 'IA',
+    'Kansas': 'KS',
+    'Kentucky': 'KY',
+    'Louisiana': 'LA',
+    'Maine': 'ME',
+    'Marshall Islands': 'MH',
+    'Maryland': 'MD',
+    'Massachusetts': 'MA',
+    'Michigan': 'MI',
+    'Minnesota': 'MN',
+    'Mississippi': 'MS',
+    'Missouri': 'MO',
+    'Montana': 'MT',
+    'Nebraska': 'NE',
+    'Nevada': 'NV',
+    'New Hampshire': 'NH',
+    'New Jersey': 'NJ',
+    'New Mexico': 'NM',
+    'New York': 'NY',
+    'North Carolina': 'NC',
+    'North Dakota': 'ND',
+    'Northern Mariana Islands': 'MP',
+    'Ohio': 'OH',
+    'Oklahoma': 'OK',
+    'Oregon': 'OR',
+    'Palau': 'PW',
+    'Pennsylvania': 'PA',
+    'Puerto Rico': 'PR',
+    'Rhode Island': 'RI',
+    'South Carolina': 'SC',
+    'South Dakota': 'SD',
+    'Tennessee': 'TN',
+    'Texas': 'TX',
+    'Utah': 'UT',
+    'Vermont': 'VT',
+    'Virgin Islands': 'VI',
+    'Virginia': 'VA',
+    'Washington': 'WA',
+    'West Virginia': 'WV',
+    'Wisconsin': 'WI',
+    'Wyoming': 'WY'
+  }
+stateDropdown(id='simState')
+function stateDropdown(id='selectState'){
+  dropdown = document.getElementById(id)
+  for (state in states_hash){
+    var stateOption = new Option(state, state)
+    dropdown.options.add(stateOption)
+  }
+}
+
+clip()
+document.getElementById('userpaste').innerHTML = ''
+graph_state()
 
 function clip() {
     var text = d3.select("#userpaste")._groups[0][0].value // get user pasted data
@@ -41,13 +129,14 @@ function clip() {
     document.getElementById('usertable').innerHTML = '' // clear old table if any
     table = document.getElementById("usertable") // establish new table
 
-    for (i=0; i<clipRows.length - 1; i++) {
+    numRows = 10
+    numCol = 6
+    for (i=0; i<numRows; i++) {
         newRow = table.insertRow();
-        for (j=0; j<clipRows[i].length; j++) {
+        for (j=0; j<numCol; j++) {
             newCell = newRow.insertCell();
-            if (clipRows[i][j].length == 0) {
+            if (clipRows[i][j] == undefined || clipRows[i][j].length == 0) {
                 newCell.contentEditable = true
-
                 newCell.innerText = '';
             }
             else {
@@ -56,22 +145,41 @@ function clip() {
             }
         }
     }
-    inputType = document.getElementById('calOrpol').value
-    data = tableToJson('usertable')
-    if (inputType == 'calibrate'){
-      makeUserInputLine('inputGraphCases', 'viewInputCases', data, dataType='Cases')
-      makeUserInputLine('inputGraphHospital', 'viewInputHospital', data, dataType='Hospitalization')
-      makeUserInputLine('inputGraphDeath', 'viewInputDeath', data, dataType='Deaths')
-      makeUserInputLine('inputGraphTest', 'viewInputTest', data, dataType='Tests')
-    }else{
-      makeUserInputLine('inputGraphCases', 'viewInputCases', data, dataType='Scenario1-Param1')
-      makeUserInputLine('inputGraphHospital', 'viewInputHospital', data, dataType='Scenario1-Param2')
-      makeUserInputLine('inputGraphDeath', 'viewInputDeath', data, dataType='Scenario1-Param3')
-    }
+    graph_policy()
 }
 
+function graph_policy(){
+  data = tableToJson('usertable', 'column')
+  makeUserInputLine('inputGraphContactReduction', 'viewInputContactReduction',
+                    data, dataType='Contact Reduction')
+  data = tableToJson('usertable', 'column')
+  makeUserInputLine('inputGraphContactTracing', 'viewInputContactTracing',
+                    data, dataType='Contact Tracing')
+  data = tableToJson('usertable', 'column')
+  makeUserInputLine('inputGraphUniversalTracing', 'viewInputUniversalTracing',
+                    data, dataType='Universal Testing')
+}
+
+function graph_state(){
+  var state = d3.select("#simState")._groups[0][0].value // get user pasted data
+  console.log(state)
+  d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data){
+    console.log(covid_data)
+    makeCovidTrackerLine('inputGraphCases', 'inf', covid_data,
+     scaleType='linear', state=state, dataType='positive')
+    makeCovidTrackerLine('inputGraphHospital', 'hosp', covid_data,
+     scaleType='linear', state=state, dataType= 'hospitalized')
+    makeCovidTrackerLine('inputGraphDeath', 'deat', covid_data,
+     scaleType='linear', state=state, dataType= 'death')
+    makeCovidTrackerLine('inputGraphTest', 'tests', covid_data,
+     scaleType='linear', state=state, dataType= 'totalTestResults')
+  })
+}
+
+
 function calibrate(){
-  to_python = tableToJson("usertable")
+  var state = d3.select("#simState")._groups[0][0].value // get user pasted data
+  to_python = [{'state':state, 'rl_input':tableToJson("usertable")}]
   $.ajax({
         type: "POST",
         url: "calibrate_model", // url on python side
@@ -84,21 +192,7 @@ function calibrate(){
   });
 }
 
-function simulate(){
-  to_python = tableToJson("usertable")
-  $.ajax({
-        type: "POST",
-        url: "simulate_model", // url on python side
-        data: JSON.stringify(to_python),
-        contentType: "application/json",
-        success: function (dataset) {
-          all_data = dataset.data;
-          console.log(all_data)
-        },
-  });
-}
-
-function tableToJson(id) {
+function tableToJson(id, type='index') {
   var table = document.getElementById(id)
   var data = [];
   // first row needs to be headers
@@ -106,20 +200,28 @@ function tableToJson(id) {
   for (var i=0; i<table.rows[0].cells.length; i++) {
       headers[i] = table.rows[0].cells[i].innerHTML.replace(/ /gi,'');
   }
-  // go through cells
-	start = 1
-  for (var i=start; i<table.rows.length; i++) {
-      var tableRow = table.rows[i];
-      var rowData = {};
-      for (var j=0; j<tableRow.cells.length ; j++) {
-          rowData[headers[j]] = tableRow.cells[j].innerHTML;
+  if (type == 'index'){
+    // go through cells
+  	start = 1
+    for (var i=start; i<table.rows.length; i++) {
+        var tableRow = table.rows[i];
+        var rowData = {};
+        for (var j=0; j<tableRow.cells.length ; j++) {
+            rowData[headers[j]] = tableRow.cells[j].innerHTML;
+        }
+        data.push(rowData);
+    }
+  }else{
+    // go through cells
+    for (var i=0; i<table.rows[0].cells.length; i++) {
+      var colData = [];
+      for (var j=1; j<table.rows.length ; j++) {
+        colData.push(parseFloat(table.rows[j].cells[i].innerHTML));
       }
-      data.push(rowData);
+      data[headers[i]] = colData;
+    }
   }
   return data;
 }
-
-
-
 </script>
 {% endblock %}
