@@ -63,8 +63,8 @@ def calibrate_model():
     results = COVID_model.run_simulation(covid_model, state = "NY", decision = rl_input, heroku=heroku)
     for k,v in results.items():
         results[k].index = results[k].index.astype(str)
-    # to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
-    to_java = json.dumps({'hello':str(len(os.getcwd()))})
+    to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
+    #to_java = json.dumps({'hello':str(len(os.getcwd()))})
     #print(time.time() - t)
     return jsonify(status='success', data=to_java)
 
