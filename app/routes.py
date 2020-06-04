@@ -52,22 +52,19 @@ def calibrate_model():
         to_df[i] = v
     df = pd.DataFrame.from_dict(to_df,orient='index')
     rl_input = read_policy_mod.read_policy(df)
-    heroku = True
-    
+    heroku = False
+    if len(os.getcwd()) < 25:
+        heroku = True
     if heroku == False:
         what = os.listdir(os.path.join(os.getcwd(), 'app\\COVID19master\\data'))
     else:
         what = os.listdir(os.path.join(os.getcwd(), 'app/COVID19master/data'))
-    # load_path = os.path.join(cwd, 'app/COVID19master/data/COVID_input_parameters.xlsx')
-    # test = pd.read_excel(load_path, sheet_name = 'q-mat_blank')
-    #q_mat_blank = pd.read_excel(path, sheet_name='Decision')
-    #print(time.time() - t)
     covid_model = COVID_model.run_calibration(state='NY', decision=rl_input, heroku=heroku)
-    # results = COVID_model.run_simulation(covid_model, state = "NY", decision = rl_input, heroku=heroku)
-    # for k,v in results.items():
-    #     results[k].index = results[k].index.astype(str)
+    results = COVID_model.run_simulation(covid_model, state = "NY", decision = rl_input, heroku=heroku)
+    for k,v in results.items():
+        results[k].index = results[k].index.astype(str)
     # to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
-    to_java = json.dumps({'hello':'it works'})
+    to_java = json.dumps({'hello':str(len(os.getcwd()))})
     #print(time.time() - t)
     return jsonify(status='success', data=to_java)
 

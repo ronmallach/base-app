@@ -16,7 +16,7 @@ from app.COVID19master import read_policy_mod as rp # RON EDIT
 
 
 class CovidModel():
-    def __init__(self, path, decision):
+    def __init__(self, path, decision, heroku=False):
         super(CovidModel, self).__init__()
 
         self.beta_max = gv.beta_before_sd  # max transmission rate (normal pre-COVID 19)
@@ -79,7 +79,11 @@ class CovidModel():
                                                                   # [1]: contact tracing, [2]: universal testing)
 
         # initialize observation 
-        self.op_ob = op.output_var(int(self.T_total/self.inv_dt) + 1, state = self.enter_state, cwd = path, policy = decision)
+        self.op_ob = op.output_var(int(self.T_total/self.inv_dt) + 1,
+                                   state = self.enter_state,
+                                   cwd = path,
+                                   policy = decision,
+                                   heroku = heroku)
 
         self.reset_rl()                                           # initialize rl 
         self.reset_sim()                                          # reset the simulation 
@@ -469,11 +473,11 @@ def run_COVID_sim(model, decision, path, write = 'Y'):
 def run_calibration(state, decision, heroku=False):
     path = os.getcwd()
     T_max = decision.shape[0]
-    t = time.time()
+    #t = time.time()
     setup_COVID_sim(state, path, T_max, heroku=heroku) 
-    print('setup', time.time()-t)
-    sample_model = CovidModel(path, decision)
-    print('made sample', time.time()-t)
+    #print('setup', time.time()-t)
+    sample_model = CovidModel(path, decision, heroku=heroku)
+    #print('made sample', time.time()-t)
     return sample_model   
     
 

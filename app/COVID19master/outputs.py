@@ -13,7 +13,7 @@ from app.COVID19master import global_var as gv
 
 class output_var:
 
-    def __init__(self, sizeofrun, state, cwd, policy):
+    def __init__(self, sizeofrun, state, cwd, policy, heroku=False):
         self.time_step = np.zeros(sizeofrun)
         self.action_plot = np.zeros(sizeofrun)
         self.a_sd_plot = np.zeros(sizeofrun)
@@ -33,7 +33,7 @@ class output_var:
         self.num_uni = np.zeros(sizeofrun)
         self.num_trac = np.zeros(sizeofrun)
         self.num_hop_tst =  np.zeros(sizeofrun)
-        self.start_d, self.sd_d, self.decision_d  = gv.read_date(state, cwd)
+        self.start_d, self.sd_d, self.decision_d  = gv.read_date(state, cwd, heroku)
         self.policy_plot = policy
         self.num_diag_inf = np.zeros(sizeofrun)
         self.num_undiag_inf = np.zeros(sizeofrun)
