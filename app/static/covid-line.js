@@ -1,4 +1,5 @@
-function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linear', state="New York", dataType='positive'){
+function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linear',
+ state="New York", dataType='positive', simulation=null, simDataType=null){
 
   d3.select("#" + SVG_name).remove()
   // clears the data from the last time
@@ -11,21 +12,36 @@ function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linea
 
   data = covid_data.filter(d => d.state == states_hash[state])
 
-  x = d3.scaleUtc()
-        .domain(d3.extent(data, d => eightToDate(d.date)))
-        .range([margin.left, width - margin.right])
-
-
-
-  if (scaleType == 'linear'){
-    y = d3.scaleLinear()
-          .domain([0, d3.max(data, d => d[dataType])])
-          .range([height - margin.bottom, margin.top])
+  if (simulation == null){
+    x = d3.scaleUtc()
+          .domain(d3.extent(data, d => eightToDate(d.date)))
+          .range([margin.left, width - margin.right])
+    if (scaleType == 'linear'){
+      y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d[dataType])])
+            .range([height - margin.bottom, margin.top])
     }else{
-    y = d3.scaleLog()
-        .domain([1, d3.max(data, d => d[dataType])])
-        .range([height - margin.bottom, margin.top])
+      y = d3.scaleLog()
+            .domain([1, d3.max(data, d => d[dataType])])
+            .range([height - margin.bottom, margin.top])
     }
+  }else{
+    x = d3.scaleUtc()
+          .domain(d3.extent(simulation, d => new Date(d.Date)))
+          .range([margin.left, width - margin.right])
+
+    if (scaleType == 'linear'){
+      y = d3.scaleLinear()
+            .domain([0, d3.max(simulation, d => parseFloat(d[simDataType]))])
+            .range([height - margin.bottom, margin.top])
+    }else{
+      y = d3.scaleLog()
+            .domain([1, d3.max(simulation, d => parseFloat(d[simDataType]))])
+            .range([height - margin.bottom, margin.top])
+    }
+  }
+
+
 
   var svg = d3.select("#" + parentName)
     .append("svg")
@@ -63,6 +79,21 @@ function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linea
                .y(function(d) {return y(d[dataType])})
                .x(function(d) {return x(eightToDate(d.date))})
 
+  if (simulation !== null){
+    drawSimLine = d3.line()
+                 .y(function(d) {return y(parseFloat(d[simDataType]))})
+                 .x(function(d) {return x(new Date(d.Date))})
+
+    svg.append("path")
+      .datum(simulation)
+      .attr('class', 'line')
+      .attr("fill", "none")
+      .attr("stroke", "red")
+      .attr("stroke-width", 1.5)
+      .attr("d", d => drawSimLine(d))
+
+  }
+
        // Add the line
   svg.append("path")
      .datum(data)
@@ -80,7 +111,6 @@ function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linea
            .style("font-size", "14px")
            .style("text-decoration", "underline")
            .text(dataType);
-
 }
 
 

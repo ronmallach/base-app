@@ -74,32 +74,32 @@ def read_policy(df):
 
 
 
-def read_policy_old(path):
-    df = pd.read_excel(path, header=0)
-    l = []
-    params = 3
-    for i in range(params):
-        l.append([])
+# def read_policy_old(path):
+#     df = pd.read_excel(path, header=0)
+#     l = []
+#     params = 3
+#     for i in range(params):
+#         l.append([])
     
         
-    for j in range(params):
-        for i in range(1,df.values.shape[0]):
+#     for j in range(params):
+#         for i in range(1,df.values.shape[0]):
         
-        # policy 1
-            if not isnan(df.values[i][3*j+1]):
-                l[j].append((df.values[i][3*j+1]-1,df.values[i][3*j+2]))
+#         # policy 1
+#             if not isnan(df.values[i][3*j+1]):
+#                 l[j].append((df.values[i][3*j+1]-1,df.values[i][3*j+2]))
             
-            else:
-                break
+#             else:
+#                 break
             
-    T_max = l[0][-1][0] +1
-    policy = np.zeros((T_max,params))
-    for j in range(params):
-        for k in range(len(l[j])-1):
-            policy[l[j][k][0]:l[j][k+1][0],j] = l[j][k][1]
+#     T_max = l[0][-1][0] +1
+#     policy = np.zeros((T_max,params))
+#     for j in range(params):
+#         for k in range(len(l[j])-1):
+#             policy[l[j][k][0]:l[j][k+1][0],j] = l[j][k][1]
         
-        policy[T_max-1,j] = l[j][k+1][1]
-    return policy
+#         policy[T_max-1,j] = l[j][k+1][1]
+#     return policy
             
 
 """if __name__ =='__main__':

@@ -36,9 +36,12 @@ def index():
 def render_input():
     return render_template('input.html')
 
+@bp.route('/simResult', methods=('GET', 'POST'))
+def render_result():
+    return render_template('simResult.html')
+
 @bp.route('/input/download_newfile')
 def download_newfile():
-    print('hello')
     path = 'policy_example.xlsx'
     return send_file(path, attachment_filename='new_test.xlsx', as_attachment=True)
 
@@ -56,6 +59,7 @@ def calibrate_model():
         heroku = True
     covid_model = COVID_model.run_calibration(state='NY', decision=rl_input, heroku=heroku)
     results = COVID_model.run_simulation(covid_model, state = "NY", decision = rl_input, heroku=heroku)
+    results['Summary']['Date'] = results['Summary'].index.astype(str)
     for k,v in results.items():
         results[k].index = results[k].index.astype(str)
     to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
@@ -76,7 +80,7 @@ def calibrate_model():
 #         what = os.listdir(os.path.join(os.getcwd(), 'app\\COVID19master\\data'))
 #     else:
 #         what = os.listdir(os.path.join(os.getcwd(), 'app/COVID19master/data'))
-        
+
 #     results = COVID_model.run_simulation(covid_model, state = "NY", decision = rl_input, heroku=heroku)
 #     for k,v in results.items():
 #         results[k].index = results[k].index.astype(str)
