@@ -1,9 +1,10 @@
 function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linear',
- state="New York", dataType='positive', simulation=null, simDataType=null){
+ state="New York", dataType='positive', cumulative='cumulative', simulation=null, simDataType=null){
 
   d3.select("#" + SVG_name).remove()
   // clears the data from the last time
   aspectRatio = 0.6
+
 
   parentWidth = document.getElementById(parentName).offsetWidth
   var margin = {top: 25, right: 10, bottom: 20, left: 30},
@@ -11,6 +12,10 @@ function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linea
   width = parentWidth - margin.left - margin.right
 
   data = covid_data.filter(d => d.state == states_hash[state])
+
+  if (cumulative == 'daily'){
+    dataType = dataType + 'Increase'
+  }
 
   if (simulation == null){
     x = d3.scaleUtc()

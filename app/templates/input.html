@@ -38,22 +38,11 @@
     </select></p>
     <p> <button class='w3-button w3-dark-grey' onclick='calibrate()'>5. Run Simulation</button>    </p>
 
-    <p><a href="{{ url_for('blueprint.render_result') }}" class="w3-dark-grey w3-button"> Next Next</a></p>
-    <p class='w3-border'>
-      <p id=StateNameTitle></p>
-      <div class='w3-border' id=inputGraphState></div>
-      <p> Plot :
-      <select id='stateGraphChoice' onchange='graph_stateChoice()' style='width:50%'>
-        <option value="positive">Cases</option>
-        <option value="hospitalized">Hospitalizations</option>
-        <option value="death">Deaths</option>
-        <option value="totalTestResults">Tests Given</option>
-      </select></p>
-    </p>
-
   </div>
   <div class='w3-col s8' style="overflow-y:scroll; height:90vh">
-
+    <p class='w3-border'>
+      <h2 id=StateNameTitle style='text-align:center'></h2>
+    </p>
     <table id=usertable class='w3-table-all w3-hoverable w3-tiny w3-centered tabbed'></table>
     <div id='simResultGraphs' class='tabbed' style="display:none">
       <div class='w3-col s6'>
@@ -150,7 +139,7 @@ function stateDropdown(id='selectState'){
 
 clip()
 document.getElementById('userpaste').innerHTML = ''
-graph_stateChoice()
+
 
 function clip() {
     var text = d3.select("#userpaste")._groups[0][0].value // get user pasted data
@@ -198,13 +187,19 @@ function graph_policy(){
 
 function graph_stateChoice(){
   var state = d3.select("#simState")._groups[0][0].value // get user pasted data
-  var dataType = d3.select("#stateGraphChoice")._groups[0][0].value // get user pasted data
-  document.getElementById('StateNameTitle').innerHTML = state +  ' - History'
+  document.getElementById('StateNameTitle').innerHTML = state
   console.log(state)
   d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data){
     console.log(covid_data)
-    makeCovidTrackerLine('inputGraphState', 'inf', covid_data,
-     scaleType='linear', state=state, dataType=dataType)
+    makeCovidTrackerLine('resultGraphCases', 'infsim', covid_data,
+       scaleType='linear', state=state, dataType='positive',
+       simulation=null, simDataType=null)
+    makeCovidTrackerLine('resultGraphHospital', 'hospsim', covid_data,
+       scaleType='linear', state=state, dataType='hospitalized',
+       simulation=null, simDataType=null)
+    makeCovidTrackerLine('resultGraphDeath', 'deathsim', covid_data,
+       scaleType='linear', state=state, dataType='death',
+       simulation=null, simDataType=null)
   })
 }
 
@@ -220,23 +215,22 @@ function calibrate(){
         success: function (dataset) {
           all_data = dataset.data;
           simSummary = to_object(all_data, 'Summary')
-          console.log(to_object(all_data, 'Summary'))
+          //console.log(to_object(all_data, 'Summary'))
           switchTab('simResultGraphs')
           d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data){
-            console.log(covid_data)
+            //console.log(covid_data)
             makeCovidTrackerLine('resultGraphCases', 'infsim', covid_data,
-              scaleType='linear', state=state, dataType='positive',
+              scaleType='linear', state=state, dataType='positive',cumulative='cumulative',
               simulation=simSummary, simDataType='projected cumulative diagnosis')
             makeCovidTrackerLine('resultGraphHospital', 'hospsim', covid_data,
-              scaleType='linear', state=state, dataType='hospitalized',
+              scaleType='linear', state=state, dataType='hospitalized', cumulative='cumulative',
               simulation=simSummary, simDataType='projected cumulative hospitalized')
             makeCovidTrackerLine('resultGraphDeath', 'deathsim', covid_data,
-              scaleType='linear', state=state, dataType='death',
+              scaleType='linear', state=state, dataType='death', cumulative='cumulative',
               simulation=simSummary, simDataType='projected cumulative deaths')
           })
         },
   });
-
 }
 
 function to_object(all_data, name) {
