@@ -29,12 +29,9 @@
 
 
 
-
-
     </textarea>
     <p><button class='w3-button w3-dark-grey' onclick='graph_policy()'>4. Update Policy</button></p>
     <p><button class='w3-button w3-dark-grey' onclick='calibrate()'>5. Run Simulation</button></p>
-
   </div>
   <div class='w3-panel w3-border w3-round w3-col s9 w3-blue-grey' style="overflow-y:scroll; height:85vh">
     <p class='w3-border'>
@@ -161,7 +158,7 @@ function clip() {
     document.getElementById('usertable').innerHTML = '' // clear old table if any
     table = document.getElementById("usertable") // establish new table
 
-    numRows = 17
+    numRows = 10
     numCol = 6
     for (i=0; i<numRows; i++) {
         newRow = table.insertRow();
