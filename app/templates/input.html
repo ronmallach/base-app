@@ -2,11 +2,19 @@
 
 {% block content %}
 
-<div class='w3-container w3-light-grey' id='everything'>
-  <div class="w3-col w3-border s2" id="pastePanel">
+<div class='w3-container' style="background-color:#34495E;"  id='everything'>
+  <div class="w3-panel w3-border w3-round w3-col s2 w3-blue-grey w3-margin" id="pastePanel">
     <p> Lets type up some instructions here </p>
-    <a href="{{ url_for('blueprint.download_newfile') }}">1. Download Template</a>
-    <textarea type='text' id='userpaste' onchange='clip()' placeholder='2. Edit Table or Paste New Values Here'>
+
+    <p>1. Choose a State to Simulate
+      <select id='simState' onchange='graph_stateChoice()' style='width:50%'>
+        <option value="New York">New York</option>
+      </select>
+    </p>
+
+
+    <a href="{{ url_for('blueprint.download_newfile') }}">2. Download Template</a>
+    <textarea type='text' id='userpaste' onchange='clip()' placeholder='3. Edit Table or Paste New Values Here'>
       Start day (Contact Reduction)	Contact Reduction (0 to 1)	Start day (Contact Tracing)	Tests per day (Contact Tracing)	Start day (Universal Testing)	Tests per day (Universal Tracing)
       0	0.5	0	100	0	10
       31	0.3	28	300	13	20
@@ -23,45 +31,34 @@
 
 
 
-
-
-
-
-
-
-
     </textarea>
-      <button class='w3-button w3-dark-grey' onclick='graph_policy()'>3. Upload Data</button>
-    <p>4. Choose a State
-    <select id='simState' onchange='graph_stateChoice()' style='width:50%'>
-      <option value="New York">New York</option>
-    </select></p>
-    <p> <button class='w3-button w3-dark-grey' onclick='calibrate()'>5. Run Simulation</button>    </p>
+    <p><button class='w3-button w3-dark-grey' onclick='graph_policy()'>4. Update Policy</button></p>
+    <p><button class='w3-button w3-dark-grey' onclick='calibrate()'>5. Run Simulation</button></p>
 
   </div>
-  <div class='w3-col s8' style="overflow-y:scroll; height:90vh">
+  <div class='w3-panel w3-border w3-round w3-col s9 w3-blue-grey' style="overflow-y:scroll; height:85vh">
     <p class='w3-border'>
       <h2 id=StateNameTitle style='text-align:center'></h2>
     </p>
-    <table id=usertable class='w3-table-all w3-hoverable w3-tiny w3-centered tabbed'></table>
-    <div id='simResultGraphs' class='tabbed' style="display:none">
-      <div class='w3-col s6'>
-        <div class='w3-border' id=resultGraphCases></div>
-        <div class='w3-border' id=resultGraphHospital></div>
-      </div>
-      <div class='w3-col s6'>
-        <div class='w3-border' id=resultGraphDeath></div>
-      </div>
-    </div>
     <div class="w3-bar w3-black">
-      <button class="w3-bar-item w3-button" onclick="switchTab('usertable')">Policy Table</button>
+      <button class="w3-bar-item w3-button" onclick="switchTab('tablediv')">Policy Table</button>
       <button class="w3-bar-item w3-button" onclick="switchTab('simResultGraphs')">Simulation Results</button>
     </div>
-  </div>
-  <div class='w3-col s2' style="overflow-y:scroll; height:90vh">
-    <div class='w3-border' id=inputGraphContactReduction></div>
-    <div class='w3-border' id=inputGraphContactTracing></div>
-    <div class='w3-border' id=inputGraphUniversalTracing></div>
+    <div id=tablediv class='tabbed'>
+      <div class='w3-row'>
+        <div class='w3-border w3-col s4 w3-light-grey' id=inputGraphContactReduction></div>
+        <div class='w3-border w3-col s4 w3-light-grey' id=inputGraphContactTracing></div>
+        <div class='w3-border w3-col s4 w3-light-grey' id=inputGraphUniversalTracing></div>
+      </div>
+      <table id=usertable class='w3-table-all w3-hoverable w3-tiny w3-centered' style="color:black"></table>
+    </div>
+    <div id='simResultGraphs' class='tabbed' style="display:none">
+      <div class='w3-col s12'>
+        <div class='w3-border w3-light-grey' id=resultGraphCases></div>
+        <div class='w3-border w3-light-grey' id=resultGraphHospital></div>
+        <div class='w3-border w3-light-grey' id=resultGraphDeath></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -139,7 +136,20 @@ function stateDropdown(id='selectState'){
 
 clip()
 document.getElementById('userpaste').innerHTML = ''
+graph_stateChoice()
 
+
+function graph_policy(){
+  data = tableToJson('usertable', 'column')
+  makeUserInputLine('inputGraphContactReduction', 'viewInputContactReduction',
+                    data, dataType='Contact Reduction')
+  data = tableToJson('usertable', 'column')
+  makeUserInputLine('inputGraphContactTracing', 'viewInputContactTracing',
+                    data, dataType='Contact Tracing')
+  data = tableToJson('usertable', 'column')
+  makeUserInputLine('inputGraphUniversalTracing', 'viewInputUniversalTracing',
+                    data, dataType='Universal Testing')
+}
 
 function clip() {
     var text = d3.select("#userpaste")._groups[0][0].value // get user pasted data
@@ -166,24 +176,13 @@ function clip() {
                 newCell.contentEditable = true
                 newCell.innerText = clipRows[i][j];
                 newCell.className = 'w3-border'
-
             }
         }
     }
     graph_policy()
 }
 
-function graph_policy(){
-  data = tableToJson('usertable', 'column')
-  makeUserInputLine('inputGraphContactReduction', 'viewInputContactReduction',
-                    data, dataType='Contact Reduction')
-  data = tableToJson('usertable', 'column')
-  makeUserInputLine('inputGraphContactTracing', 'viewInputContactTracing',
-                    data, dataType='Contact Tracing')
-  data = tableToJson('usertable', 'column')
-  makeUserInputLine('inputGraphUniversalTracing', 'viewInputUniversalTracing',
-                    data, dataType='Universal Testing')
-}
+
 
 function graph_stateChoice(){
   var state = d3.select("#simState")._groups[0][0].value // get user pasted data
@@ -279,6 +278,7 @@ function switchTab(showTab) {
     x[i].style.display = "none";
   }
   document.getElementById(showTab).style.display = "block";
+  graph_stateChoice()
   }
 </script>
 {% endblock %}

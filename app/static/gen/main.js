@@ -248,13 +248,21 @@ function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linea
 
   d3.select("#" + SVG_name).remove()
   // clears the data from the last time
-  aspectRatio = 0.6
+  aspectRatio = 0.3
 
-  console.log(dataType)
+  title_mapping = {'positive':' Positive Cases - Cumulative',
+                   'positiveIncrease': ' Positive Cases - Daily Increase',
+                   'death':' Deaths - Cumulative',
+                   'deathIncrease': ' Deaths - Daily Increase',
+                   'hospitalized':' Hospitilizations - Cumulative',
+                   'hospitalizedIncrease': ' Hospitilizations - Daily Increase',
+                   'totalTestResults': ' Tests Taken - Cumulative',
+                   'totalTestResultsIncrease': ' Tests Taken - Daily Increase',
+                  }
 
   parentWidth = document.getElementById(parentName).offsetWidth
-  var margin = {top: 25, right: 10, bottom: 20, left: 30},
-  height = parentWidth * aspectRatio - margin.top - margin.bottom
+  var margin = {top: 30, right: 20, bottom: 20, left: 30},
+  height = parentWidth * aspectRatio - margin.top// - margin.bottom
   width = parentWidth - margin.left - margin.right
 
   data = covid_data.filter(d => d.state == states_hash[state])
@@ -263,13 +271,14 @@ function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linea
     dataType = dataType + 'Increase'
   }
 
+
   if (simulation == null){
     x = d3.scaleUtc()
           .domain(d3.extent(data, d => eightToDate(d.date)))
           .range([margin.left, width - margin.right])
     if (scaleType == 'linear'){
       y = d3.scaleLinear()
-            .domain([0, d3.max(data, d => d[dataType])])
+            .domain([d3.min(data, d => d[dataType]), d3.max(data, d => d[dataType])])
             .range([height - margin.bottom, margin.top])
     }else{
       y = d3.scaleLog()
@@ -283,7 +292,8 @@ function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linea
 
     if (scaleType == 'linear'){
       y = d3.scaleLinear()
-            .domain([0, d3.max(simulation, d => parseFloat(d[simDataType]))])
+            .domain([d3.min(simulation, d => parseFloat(d[simDataType])),
+                     d3.max(simulation, d => parseFloat(d[simDataType]))])
             .range([height - margin.bottom, margin.top])
     }else{
       y = d3.scaleLog()
@@ -304,18 +314,14 @@ function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linea
 
   svg.append("g")
      .attr("transform", `translate(0,${height - margin.bottom})`)
-     .call(d3.axisBottom(x).ticks(5)) ;
-
-  svg.append("text")
-    .attr("transform",
-          "translate(" + (width/2) + " ," + (height + margin.top-10) + ")")
-  .style("text-anchor", "middle")
-  .style("font-size", "8px")
-  .text("Date");
+     .call(d3.axisBottom(x).ticks(10)) ;
 
   svg.append("g")
     .attr("transform", `translate(${margin.left},0)`)
-    .call(d3.axisLeft(y).ticks(5));
+    .call(d3.axisLeft(y)
+            .ticks(5)
+          );
+
 
   svg.append("text")
     .attr("transform", "rotate(-90)")
@@ -326,24 +332,29 @@ function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linea
     .style("text-anchor", "middle")
     .text("Value (in Thousands)");
 
+    svg.append("g")
+    .attr("stroke", "currentColor")
+    .attr("stroke-opacity", 0.1)
+    .call(g => g.append("g")
+      .selectAll("line")
+      .data(x.ticks())
+      .join("line")
+        .attr("x1", d => 0.5 + x(d))
+        .attr("x2", d => 0.5 + x(d))
+        .attr("y1", margin.top)
+        .attr("y2", height - margin.bottom))
+    .call(g => g.append("g")
+      .selectAll("line")
+      .data(y.ticks())
+      .join("line")
+        .attr("y1", d => 0.5 + y(d))
+        .attr("y2", d => 0.5 + y(d))
+        .attr("x1", margin.left)
+        .attr("x2", width - margin.right));
+
   drawLine = d3.line()
                .y(function(d) {return y(d[dataType])})
                .x(function(d) {return x(eightToDate(d.date))})
-
-  if (simulation !== null){
-    drawSimLine = d3.line()
-                 .y(function(d) {return y(parseFloat(d[simDataType]))})
-                 .x(function(d) {return x(new Date(d.Date))})
-
-    svg.append("path")
-      .datum(simulation)
-      .attr('class', 'line')
-      .attr("fill", "none")
-      .attr("stroke", "red")
-      .attr("stroke-width", 1.5)
-      .attr("d", d => drawSimLine(d))
-
-  }
 
        // Add the line
   svg.append("path")
@@ -351,101 +362,35 @@ function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linea
      .attr('class', 'line')
      .attr("fill", "none")
      .attr("stroke", "steelblue")
-     .attr("stroke-width", 1.5)
+     .attr("stroke-linejoin", "round")
+     .attr("stroke-linecap", "round")
+     .attr("stroke-width", 2.25)
      .attr("d", d => drawLine(d))
 
+     if (simulation !== null){
+       drawSimLine = d3.line()
+                    .y(function(d) {return y(parseFloat(d[simDataType]))})
+                    .x(function(d) {return x(new Date(d.Date))})
+       svg.append("path")
+         .datum(simulation)
+         .attr('class', 'line')
+         .attr("fill", "none")
+         .attr("stroke", "red")
+         .attr("stroke-width", 1.5)
+         .attr("d", d => drawSimLine(d))
+     }
 
-    svg.append("text")
-           .attr("x", (width / 2))
-           .attr("y", 0 - (margin.top / 2))
-           .attr("text-anchor", "middle")
-           .style("font-size", "14px")
-           .style("text-decoration", "underline")
-           .text(dataType);
+  // add the title
+  svg.append("text")
+       .attr("font-family", "sans-serif")
+       .attr("font-size", 18)
+       .attr("x", (width / 2))
+       .attr("y", 10 - (margin.top / 2))
+       .attr("text-anchor", "middle")
+       .text(title_mapping[dataType]);
 }
 
 
-function mouseHover(svg, data, x, y, width, height){
-  console.log(height)
-  var mouseG = svg.append("g")
-       .attr("class", "mouse-over-effects");
-
-  mouseG.append("path") // this is the black vertical line to follow mouse
-   .attr("class", "mouse-line")
-   .style("stroke", "black")
-   .style("stroke-width", "1px")
-   .style("opacity", "0");
-
-  var lines = document.getElementsByClassName('line');
-
-  var mousePerLine = mouseG.selectAll('.mouse-per-line')
-   .data(lines)
-   .enter()
-   .append("g")
-   .attr("class", "mouse-per-line");
-
-  mousePerLine.append("circle")
-   .attr("r", 7)
-   .style('stroke', 'steelblue')
-   .style("fill", "none")
-   .style("stroke-width", "1px")
-   .style("opacity", "0");
-
-  mousePerLine.append("text")
-   .attr("transform", "translate(5,-10)");
-
-  mouseG.append('svg:rect') // append a rect to catch mouse movements on canvas
-   .attr('width', width) // can't catch mouse events on a g element
-   .attr('height', height)
-   .attr('fill', 'none')
-   .attr('pointer-events', 'all')
-   .on('mouseout', function() { // on mouse out hide line, circles and text
-     d3.select(".mouse-line")
-       .style("opacity", "0");
-     d3.selectAll(".mouse-per-line circle")
-       .style("opacity", "0");
-     d3.selectAll(".mouse-per-line text")
-       .style("opacity", "0");
-   })
-   .on('mouseover', function() { // on mouse in show line, circles and text
-     d3.select(".mouse-line")
-       .style("opacity", "1");
-     d3.selectAll(".mouse-per-line circle")
-       .style("opacity", "1");
-     d3.selectAll(".mouse-per-line text")
-       .style("opacity", "1");
-   })
-   .on('mousemove', function() { // mouse moving over canvas
-     var mouse = d3.mouse(this);
-     d3.select(".mouse-line")
-       .attr("d", function() {
-         var d = "M" + mouse[0] + "," + height;
-         d += " " + mouse[0] + "," + 0;
-         return d;
-       });
-     d3.selectAll(".mouse-per-line")
-       .attr("transform", function(d, i) {
-         var beginning = 0,
-         ending = lines[i].getTotalLength(),
-         target = null;
-         while (true){
-           target = Math.floor((beginning + ending) / 2);
-           pos = lines[i].getPointAtLength(target);
-           if ((target === ending || target === beginning) && pos.x !== mouse[0]) {
-             break;
-           }
-           // this section dynamically tracks the mouse
-           if (pos.x > mouse[0])      ending = target;
-           else if (pos.x < mouse[0]) beginning = target;
-           else break; //position found
-         }
-         d3.select(this).select('text')
-           .text(format_datetime(x.invert(pos.x)) + "," + y.invert(pos.y).toFixed(0));
-
-        return "translate(" + mouse[0] + "," + pos.y +")";
-       });
-   })
-}
 
 function format_datetime(date){
   month = '' + (date.getMonth() + 1),
@@ -462,10 +407,11 @@ function format_datetime(date){
 function makeUserInputLine(parentName, SVG_name, input_data, dataType='Cases'){
 
   d3.select("#" + SVG_name).remove()
+  aspect = .5
   // clears the data from the last time
   parentWidth = document.getElementById(parentName).offsetWidth
   var margin = {top: 25, right: 10, bottom: 20, left: 20},
-  height = parentWidth * .75- margin.top - margin.bottom
+  height = parentWidth * aspect - margin.top - margin.bottom
   width = parentWidth - margin.left - margin.right
 
   data = prep_policy_d3(input_data, dataType)

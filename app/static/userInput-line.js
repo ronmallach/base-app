@@ -1,10 +1,11 @@
 function makeUserInputLine(parentName, SVG_name, input_data, dataType='Cases'){
 
   d3.select("#" + SVG_name).remove()
+  aspect = .5
   // clears the data from the last time
   parentWidth = document.getElementById(parentName).offsetWidth
   var margin = {top: 25, right: 10, bottom: 20, left: 20},
-  height = parentWidth * .75- margin.top - margin.bottom
+  height = parentWidth * aspect - margin.top - margin.bottom
   width = parentWidth - margin.left - margin.right
 
   data = prep_policy_d3(input_data, dataType)

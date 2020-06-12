@@ -2,15 +2,14 @@
 
 {% block content %}
 
-<div class='w3-container w3-blue-grey' id='everything'>
-  <div class="w3-col s12 w3-border" id="dataPanel">
-    <div class="w3-panel w3-col s3 w3-grey w3-margin" style='height:85vh'>
+<div class='w3-container w3-col s12' style="background-color:#34495E;" id='everything'>
+    <div class="w3-panel w3-border w3-round w3-col s3 w3-blue-grey w3-margin" style='height:85vh'>
       <p> Select a State:
       <select id="selectState" onchange="updateMap()" style='width:50%'>
         <option value="New York">New York</option>
       </select></p>
-      <div class='w3-row w3-white w3-border w3-dark-grey' id='holdMap'></div>
-      <p> Color By:
+      <div class='w3-row w3-border w3-dark-grey' id='holdMap'></div>
+      <p> Color Map By:
       <select  name="colorState" id="colorState" onchange="updateMap()">
         <option value="positive">Cumulative Infections</option>
         <option value="totalTestResults">Number of Tests</option>
@@ -18,7 +17,7 @@
         <option value="hospitalized">Cum. Hospitalizations</option>
         <option value="recovered">Cum. Recoveries</option>
       </select></p>
-      <p> Show From Date:
+      <p> As Of:
       <input type="date" name="mapDate" id="mapDate" value='2020-05-30' onchange='updateMap()'></p>
        <p> Choose Graph Scale:
        <select id='chooseScale' onchange='updateMap()'>
@@ -30,27 +29,26 @@
          <option value='cumulative'> Cumulative</option>
          <option value='daily'> Daily</option>
        </select></p>
-
+       <a href="{{ url_for('blueprint.render_input') }}" class='w3-col w3-button w3-round w3-black'>Simulate a Policy for this State</a>
     </div>
-    <div class='w3-col s6 w3-panel w3-grey' style='overflow-y:scroll; height:85vh'>
-      <div class='w3-col s6 w3-panel' id="graphColumn1">
-        <div class='w3-light-grey' id='holdInfections'></div>
-        <div class='w3-panel w3-light-grey' id='holdHospitalization'></div>
+    <div class='w3-panel w3-border w3-round w3-col s8 w3-blue-grey' style='overflow-y:scroll; height:85vh'>
+      <div class=' w3-border-bottom w3-row'>
+        <h1 style='text-align:center' class='w3-col s12' id=stateTitle></h1>
       </div>
-      <div class='w3-col s6 w3-panel' id="graphColumn2">
-        <div class='w3-light-grey' id='holdDeath'></div>
-        <div class='w3-panel w3-light-grey' id='holdTest'></div>
+      <div class='w3-col s12 w3-panel' id="graphPanel">
+        <div class='w3-light-grey w3-border w3-round' id='holdInfections'></div>
+        <div class='w3-panel w3-light-grey w3-border w3-round' id='holdHospitalization'></div>
+        <div class='w3-light-grey w3-border w3-round' id='holdDeath'></div>
+        <div class='w3-panel w3-light-grey w3-border w3-round' id='holdTest'></div>
       </div>
     </div>
-  </div>
 </div>
 
 <script>
 
 console.log({{data}})
 
-states_hash =
-  {
+states_hash ={
     'Alabama': 'AL',
     'Alaska': 'AK',
     'American Samoa': 'AS',
@@ -120,6 +118,7 @@ updateMap()
 function updateMap() {
   date = d3.select("#mapDate")._groups[0][0].value
   state = d3.select("#selectState")._groups[0][0].value
+  document.getElementById("stateTitle").innerHTML = state
   statistic = d3.select("#colorState")._groups[0][0].value
   scaleType = d3.select("#chooseScale")._groups[0][0].value
   isCumulative = d3.select("#chooseCum")._groups[0][0].value
