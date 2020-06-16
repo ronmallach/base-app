@@ -1,0 +1,410 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class='w3-container' style="background-color:#34495E;"  id='everything'>
+  <div class="w3-panel w3-col s2 w3-padding-right" id="pastePanel">
+    <div class="w3-border w3-round w3-blue-grey" style="height:35vh">
+      <p> Lets type up some instructions here </p>
+
+      <p>1. Choose a State to Simulate
+      </p>
+
+
+      <a href="{{ url_for('blueprint.download_newfile') }}">2. Download Template</a>
+      <textarea type='text' id='userpaste' onchange='clip()' placeholder='3. Edit Table or Paste New Values Here'>
+        Start day (Contact Reduction)	Contact Reduction (0 to 1)	Start day (Contact Tracing)	Tests per day (Contact Tracing)	Start day (Universal Testing)	Tests per day (Universal Tracing)
+        0	0.5	0	100	0	10
+        31	0.3	28	300	13	20
+        63	0.2	100	300	31	100
+        78	0			100	100
+        100	0
+
+
+
+
+
+
+
+
+      </textarea>
+    </div>
+    <div class="w3-border w3-round w3-blue-grey w3-margin-top" style="height:10vh">
+      <div> Choose a State To Simulate</div>
+      <select class='w3-margin-top' id='simState' onchange='graph_stateChoice()' style='width:50%'>
+        <option value="New York">New York</option>
+      </select>
+    </div>
+    <div class="w3-border w3-round w3-blue-grey w3-margin-top" style="height:35vh">
+      <div> Quick View </div>
+      <div class='w3-border w3-light-grey' id=resultGraph></div>
+      <select id='simStateDT' onchange='graph_stateChoice()' style='width:50%'>
+        <option value="positive">Cases</option>
+        <option value="death">Deaths</option>
+        <option value="hospitalized">Hospitalizations</option>
+      </select>
+    </div>
+  </div>
+  <div class='w3-panel w3-border w3-round w3-col s8 w3-blue-grey' style="height:85vh">
+    <p class='w3-border'>
+      <h2 id=StateNameTitle style='text-align:center'></h2>
+    </p>
+    <div class="w3-bar w3-black">
+      <button class="w3-bar-item w3-button tablink w3-red" onclick="switchTab(event, 'tablediv')">Policy Table</button>
+      <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'contactReductionTab')">Contact Reduction</button>
+      <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'universalTestingTab')">Universal Testing</button>
+      <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'contactTracingTab')">Contact Tracing</button>
+      <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'reviewTab')">Overview + Cost Parameters</button>
+    </div>
+    <div id=tablediv class='tabbed'>
+      <table id=usertable class='w3-table-all w3-hoverable w3-tiny w3-centered' style="color:black"></table>
+    </div>
+    <div id=contactReductionTab class='tabbed' style="display:none">
+      <div class='w3-panel  w3-col s6'>
+        <div class='w3-border w3-round' style='height:30vh'>
+          <p>Contact Reduction</p>
+          <p>Description goes here</p>
+        </div>
+        <div class='w3-border w3-round w3-margin-top' style='height:30vh'>
+          <div class='w3-border w3-light-grey' id=inputGraphContactReduction1></div>
+        </div>
+      </div>
+      <div class='w3-panel w3-col s6 w3-round w3-border' style='height:62.5vh'>
+        User Input Table Goes Here
+      </div>
+    </div>
+    <div id=universalTestingTab class='tabbed' style="display:none">
+      <div class='w3-panel  w3-col s6'>
+        <div class='w3-border w3-round' style='height:30vh'>
+          <p>Universal Testing</p>
+          <p>Description goes here</p>
+        </div>
+        <div class='w3-border w3-round w3-margin-top' style='height:30vh'>
+          <div class='w3-border w3-light-grey' id=inputGraphUniversalTracing1></div>
+        </div>
+      </div>
+      <div class='w3-panel w3-col s6 w3-round w3-border' style='height:62.5vh'>
+        User Input Table Goes Here
+      </div>
+    </div>
+    <div id=contactTracingTab class='tabbed' style="display:none">
+      <div class='w3-panel  w3-col s6'>
+        <div class='w3-border w3-round' style='height:30vh'>
+          <p>Contact Tracing</p>
+          <p>Description goes here</p>
+        </div>
+        <div class='w3-border w3-round w3-margin-top' style='height:30vh'>
+          <div class='w3-border w3-light-grey' id=inputGraphContactTracing1></div>
+        </div>
+      </div>
+      <div class='w3-panel w3-col s6 w3-round w3-border' style='height:62.5vh'>
+        User Input Table Goes Here
+      </div>
+    </div>
+    <div id=reviewTab class='tabbed' style="display:none">
+      <div class='w3-panel w3-col s6'>
+        <div class='w3-border w3-round' style='height:30vh'>
+          <p>General Introduction To The Policy Builder</p>
+          <p>Description goes here</p>
+        </div>
+        <div class='w3-border w3-round w3-margin-top' style='height:30vh'>
+          <p> Cost Parameters (per person)</p>
+          <div>
+            <p class='w3-round'>Cost of Contact Tracing:
+               <input id=costCT class='w3-round' type=number value=50></input>
+             </p>
+            <p class='w3-round'>Cost of Universal Testing:
+              <input id=costUT class='w3-round' type=number value=50></input>
+            </p>
+            <p class='w3-round'>Unemployement Wage:
+               <input id=costUW class='w3-round' type=number value=50></input>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class='w3-panel w3-col s6 w3-round' style='height:62.5vh'>
+        <div class='w3-border w3-light-grey' id=inputGraphContactReduction2></div>
+        <div class='w3-border w3-light-grey' id=inputGraphContactTracing2></div>
+        <div class='w3-border w3-light-grey' id=inputGraphUniversalTracing2></div>
+      </div>
+    </div>
+  </div>
+  <div class='w3-panel  w3-col s2'>
+    <div class='w3-border w3-round w3-blue-grey' style="height:62.5vh">
+      <p class="w3-border-bottom" style='text-align:center'>Policy Overview</p>
+      <p>
+        <div id=overviewStateChoice  style='font-size:16px'> State Choice: xyz</div>
+        <div class='w3-border-top' id=overviewCost1 style='font-size:12px'>Contact Tracing: $50</div>
+        <div id=overviewCost2 style='font-size:12px'>Universal Testing: $60</div>
+        <div id=overviewCost3 style='font-size:12px'>Unemployment Wage: $69</div>
+      </p>
+      <p class='w3-border-top'>Policy Builder Checklist</p>
+      <table class='w3-table-all w3-tiny w3-centered' style='color:black'>
+        <tr>
+          <th class='w3-border'>Policy Name</th>
+          <th class='w3-border'>Plan A</th>
+          <th class='w3-border'>Plan B</th>
+          <th class='w3-border'>Plan C</th>
+        </tr>
+        <tr>
+          <td class='w3-border'>Contact Reduction</td>
+          <td id=crA class='w3-border'></td>
+          <td id=crB class='w3-border'></td>
+          <td id=crC class='w3-border'></td>
+        </tr>
+        <tr>
+          <td class='w3-border'>Universal Testing</td>
+          <td id=utA class='w3-border'></td>
+          <td id=utB class='w3-border'></td>
+          <td id=utC class='w3-border'></td>
+        </tr>
+        <tr>
+          <td class='w3-border'>Contact Tracing</td>
+          <td id=ctA class='w3-border'></td>
+          <td id=ctB class='w3-border'></td>
+          <td id=ctC class='w3-border'></td>
+        </tr>
+        <tr>
+          <td class='w3-border'>Is Usable?</td>
+          <td class='w3-border'>No</td>
+          <td class='w3-border'>No</td>
+          <td class='w3-border'>No</td>
+        </tr>
+      </table>
+    </div>
+    <div class='w3-border w3-panel w3-round w3-blue-grey' style="height:20vh">
+      <div> Final Review </div>
+      <p><button class='w3-button w3-green w3-round' onclick='graph_policy()'>Save Policy Changes</button></p>
+      <p><button class='w3-button w3-red w3-round' onclick='calibrate()'>Run Simulation</button></p>
+    </div>
+  </div>
+</div>
+
+<script>
+states_hash =
+  {
+    'Alabama': 'AL',
+    'Alaska': 'AK',
+    'Arizona': 'AZ',
+    'Arkansas': 'AR',
+    'California': 'CA',
+    'Colorado': 'CO',
+    'Connecticut': 'CT',
+    'Delaware': 'DE',
+    'District Of Columbia': 'DC',
+    'Florida': 'FL',
+    'Georgia': 'GA',
+    'Guam': 'GU',
+    'Hawaii': 'HI',
+    'Idaho': 'ID',
+    'Illinois': 'IL',
+    'Indiana': 'IN',
+    'Iowa': 'IA',
+    'Kansas': 'KS',
+    'Kentucky': 'KY',
+    'Louisiana': 'LA',
+    'Maine': 'ME',
+    'Maryland': 'MD',
+    'Massachusetts': 'MA',
+    'Michigan': 'MI',
+    'Minnesota': 'MN',
+    'Mississippi': 'MS',
+    'Missouri': 'MO',
+    'Montana': 'MT',
+    'Nebraska': 'NE',
+    'Nevada': 'NV',
+    'New Hampshire': 'NH',
+    'New Jersey': 'NJ',
+    'New Mexico': 'NM',
+    'New York': 'NY',
+    'North Carolina': 'NC',
+    'North Dakota': 'ND',
+    'Ohio': 'OH',
+    'Oklahoma': 'OK',
+    'Oregon': 'OR',
+    'Pennsylvania': 'PA',
+    'Puerto Rico': 'PR',
+    'Rhode Island': 'RI',
+    'South Carolina': 'SC',
+    'South Dakota': 'SD',
+    'Tennessee': 'TN',
+    'Texas': 'TX',
+    'Utah': 'UT',
+    'Vermont': 'VT',
+    'Virgin Islands': 'VI',
+    'Virginia': 'VA',
+    'Washington': 'WA',
+    'West Virginia': 'WV',
+    'Wisconsin': 'WI',
+    'Wyoming': 'WY'
+  }
+stateDropdown(id='simState')
+function stateDropdown(id='selectState'){
+  dropdown = document.getElementById(id)
+  for (state in states_hash){
+    var stateOption = new Option(state, state)
+    dropdown.options.add(stateOption)
+  }
+}
+
+clip()
+document.getElementById('userpaste').innerHTML = ''
+graph_stateChoice()
+
+
+function graph_policy(){
+  data1 = tableToJson('usertable', 'column')
+  data2 = tableToJson('usertable', 'column')
+  data3 = tableToJson('usertable', 'column')
+  data4 = tableToJson('usertable', 'column')
+  data5 = tableToJson('usertable', 'column')
+  data6 = tableToJson('usertable', 'column')
+  // ^ For some reason, need to have unique datas, see userInput-line.js to figure out
+  makeUserInputLine('inputGraphContactReduction1', 'viewInputContactReduction1',
+                    data1, dataType='Contact Reduction', .4);
+  makeUserInputLine('inputGraphContactTracing1', 'viewInputContactTracing1',
+                    data2, dataType='Contact Tracing', .3)
+  makeUserInputLine('inputGraphUniversalTracing1', 'viewInputUniversalTracing1',
+                    data3, dataType='Universal Testing', .3)
+  makeUserInputLine('inputGraphContactReduction2', 'viewInputContactReduction2',
+                    data4, dataType='Contact Reduction', .3)
+  makeUserInputLine('inputGraphContactTracing2', 'viewInputContactTracing2',
+                    data5, dataType='Contact Tracing', .3)
+  makeUserInputLine('inputGraphUniversalTracing2', 'viewInputUniversalTracing2',
+                    data6, dataType='Universal Testing', .3)
+
+}
+
+function clip() {
+    var text = d3.select("#userpaste")._groups[0][0].value // get user pasted data
+    clipRows = text.split(String.fromCharCode(10));  // split into rows
+    for (i=0; i<clipRows.length; i++) {
+        // split rows into columns
+        clipRows[i] = clipRows[i].split(String.fromCharCode(9));
+    }
+    document.getElementById('usertable').innerHTML = '' // clear old table if any
+    table = document.getElementById("usertable") // establish new table
+
+    numRows = 10
+    numCol = 6
+    for (i=0; i<numRows; i++) {
+        newRow = table.insertRow();
+        for (j=0; j<numCol; j++) {
+            newCell = newRow.insertCell();
+            if (clipRows[i][j] == undefined || clipRows[i][j].length == 0) {
+                newCell.contentEditable = true
+                newCell.innerText = '';
+                newCell.className = 'w3-border'
+            }
+            else {
+                newCell.contentEditable = true
+                newCell.innerText = clipRows[i][j];
+                newCell.className = 'w3-border'
+            }
+        }
+    }
+    graph_policy()
+}
+
+function graph_stateChoice(){
+  var state = d3.select("#simState")._groups[0][0].value // get user pasted data
+  var dataType = d3.select("#simStateDT")._groups[0][0].value
+  document.getElementById('StateNameTitle').innerHTML = 'Policy Builder - ' + state
+  document.getElementById('overviewStateChoice').innerHTML = 'State: ' + state
+  d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data){
+    makeCovidTrackerLine('resultGraph', 'infsim', covid_data,
+       scaleType='linear', state=state, dataType=dataType, cumulative='cumulative',
+       simulation=null, simDataType=null, aspect=.75)
+  })
+}
+
+function calibrate(){
+  graph_policy()
+  var state = d3.select("#simState")._groups[0][0].value // get user pasted data
+  to_python = [{'state':state, 'rl_input':tableToJson("usertable")}]
+  $.ajax({
+        type: "POST",
+        url: "calibrate_model", // url on python side
+        data: JSON.stringify(to_python),
+        contentType: "application/json",
+        success: function (dataset) {
+          all_data = dataset.data;
+          simSummary = to_object(all_data, 'Summary')
+          //console.log(to_object(all_data, 'Summary'))
+          switchTab('simResultGraphs')
+          d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data){
+            //console.log(covid_data)
+            makeCovidTrackerLine('resultGraphCases', 'infsim', covid_data,
+              scaleType='linear', state=state, dataType='positive',cumulative='cumulative',
+              simulation=simSummary, simDataType='projected cumulative diagnosis')
+            makeCovidTrackerLine('resultGraphHospital', 'hospsim', covid_data,
+              scaleType='linear', state=state, dataType='hospitalized', cumulative='cumulative',
+              simulation=simSummary, simDataType='projected cumulative hospitalized')
+            makeCovidTrackerLine('resultGraphDeath', 'deathsim', covid_data,
+              scaleType='linear', state=state, dataType='death', cumulative='cumulative',
+              simulation=simSummary, simDataType='projected cumulative deaths')
+          })
+        },
+  });
+}
+
+function to_object(all_data, name) {
+  json = JSON.parse(all_data[name])
+  array = [];
+  Object.keys(json).forEach(function(key){array.push(json[key])})
+  return array
+}
+
+function tableToJson(id, type='index') {
+  var table = document.getElementById(id)
+  var data = [];
+  // first row needs to be headers
+  var headers = [];
+  for (var i=0; i<table.rows[0].cells.length; i++) {
+      headers[i] = table.rows[0].cells[i].innerHTML.replace(/ /gi,'');
+  }
+  if (type == 'index'){
+    // go through cells
+  	start = 1
+    for (var i=start; i<table.rows.length; i++) {
+        var tableRow = table.rows[i];
+        var rowData = {};
+        for (var j=0; j<tableRow.cells.length ; j++) {
+            rowData[headers[j]] = tableRow.cells[j].innerHTML;
+        }
+        data.push(rowData);
+    }
+  }else{
+    // go through cells
+    for (var i=0; i<table.rows[0].cells.length; i++) {
+      var colData = [];
+      for (var j=1; j<table.rows.length ; j++) {
+        colData.push(parseFloat(table.rows[j].cells[i].innerHTML));
+      }
+      data[headers[i]] = colData;
+    }
+  }
+  return data;
+}
+
+function switchTab(evt, showTab) {
+  var i;
+  var x = document.getElementsByClassName("tabbed");
+  for (i = 0; i < x.length; i++) {
+    x[i].style.display = "none";
+  }
+
+  tablinks = document.getElementsByClassName("tablink");
+  console.log(tablinks)
+  for (i = 0; i < x.length; i++) {
+    console.log(tablinks[i])
+    tablinks[i].className = tablinks[i].className.replace("w3-red", "");
+  }
+
+  document.getElementById(showTab).style.display = "block";
+  evt.currentTarget.className += " w3-red";
+  graph_stateChoice()
+  graph_policy()
+  }
+</script>
+{% endblock %}

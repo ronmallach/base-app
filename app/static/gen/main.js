@@ -243,12 +243,15 @@ function makeForesight(parentName, covid_data, state="New York", dataType='posit
 
 }
 
-function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linear',
- state="New York", dataType='positive', cumulative='cumulative', simulation=null, simDataType=null){
+function makeCovidTrackerLine(parentName, SVG_name, covid_data,
+                              scaleType='linear', state="New York",
+                              dataType='positive', cumulative='cumulative',
+                              simulation=null, simDataType=null, aspect=null){
 
   d3.select("#" + SVG_name).remove()
   // clears the data from the last time
-  aspectRatio = 0.3
+  if (aspect == null){aspect = .33}
+  aspectRatio = aspect
 
   title_mapping = {'positive':' Positive Cases - Cumulative',
                    'positiveIncrease': ' Positive Cases - Daily Increase',
@@ -404,10 +407,11 @@ function format_datetime(date){
   return date
 }
 
-function makeUserInputLine(parentName, SVG_name, input_data, dataType='Cases'){
+function makeUserInputLine(parentName, SVG_name, input_data, dataType='Cases', aspect=null){
 
   d3.select("#" + SVG_name).remove()
-  aspect = .5
+  if (aspect == null){aspect = .33}
+  aspectRatio = aspect
   // clears the data from the last time
   parentWidth = document.getElementById(parentName).offsetWidth
   var margin = {top: 25, right: 10, bottom: 20, left: 20},

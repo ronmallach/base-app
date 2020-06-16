@@ -1,9 +1,12 @@
-function makeCovidTrackerLine(parentName, SVG_name, covid_data, scaleType='linear',
- state="New York", dataType='positive', cumulative='cumulative', simulation=null, simDataType=null){
+function makeCovidTrackerLine(parentName, SVG_name, covid_data,
+                              scaleType='linear', state="New York",
+                              dataType='positive', cumulative='cumulative',
+                              simulation=null, simDataType=null, aspect=null){
 
   d3.select("#" + SVG_name).remove()
   // clears the data from the last time
-  aspectRatio = 0.3
+  if (aspect == null){aspect = .33}
+  aspectRatio = aspect
 
   title_mapping = {'positive':' Positive Cases - Cumulative',
                    'positiveIncrease': ' Positive Cases - Daily Increase',

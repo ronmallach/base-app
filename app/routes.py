@@ -34,7 +34,8 @@ def index():
 
 @bp.route('/input', methods=('GET', 'POST'))
 def render_input():
-    return render_template('input.html')
+    #return render_template('input.html')
+    return render_template('policy_builder.html')
 
 @bp.route('/simResult', methods=('GET', 'POST'))
 def render_result():

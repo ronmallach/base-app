@@ -1,7 +1,8 @@
-function makeUserInputLine(parentName, SVG_name, input_data, dataType='Cases'){
+function makeUserInputLine(parentName, SVG_name, input_data, dataType='Cases', aspect=null){
 
   d3.select("#" + SVG_name).remove()
-  aspect = .5
+  if (aspect == null){aspect = .33}
+  aspectRatio = aspect
   // clears the data from the last time
   parentWidth = document.getElementById(parentName).offsetWidth
   var margin = {top: 25, right: 10, bottom: 20, left: 20},
