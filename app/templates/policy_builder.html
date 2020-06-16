@@ -50,13 +50,13 @@
       <h2 id=StateNameTitle style='text-align:center'></h2>
     </p>
     <div class="w3-bar w3-black">
-      <button class="w3-bar-item w3-button tablink w3-red" onclick="switchTab(event, 'tablediv')">Policy Table</button>
+      <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'reviewTab')">Overview + Cost Parameters</button>
       <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'contactReductionTab')">Contact Reduction</button>
       <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'universalTestingTab')">Universal Testing</button>
       <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'contactTracingTab')">Contact Tracing</button>
-      <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'reviewTab')">Overview + Cost Parameters</button>
+      <button class="w3-bar-item w3-button tablink w3-red" onclick="switchTab(event, 'tablediv')">Policy Table</button>
     </div>
-    <div id=tablediv class='tabbed'>
+    <div id=tablediv class='tabbed' style="display:none">
       <table id=usertable class='w3-table-all w3-hoverable w3-tiny w3-centered' style="color:black"></table>
     </div>
     <div id=contactReductionTab class='tabbed' style="display:none">
@@ -101,7 +101,7 @@
         User Input Table Goes Here
       </div>
     </div>
-    <div id=reviewTab class='tabbed' style="display:none">
+    <div id=reviewTab class='tabbed'>
       <div class='w3-panel w3-col s6'>
         <div class='w3-border w3-round' style='height:30vh'>
           <p>General Introduction To The Policy Builder</p>
