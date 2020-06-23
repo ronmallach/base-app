@@ -6,28 +6,6 @@
   <div class="w3-panel w3-col s2 w3-padding-right" id="pastePanel">
     <div class="w3-border w3-round w3-blue-grey" style="height:35vh">
       <p> Lets type up some instructions here </p>
-
-      <p>1. Choose a State to Simulate
-      </p>
-
-
-      <a href="{{ url_for('blueprint.download_newfile') }}">2. Download Template</a>
-      <textarea type='text' id='userpaste' onchange='clip()' placeholder='3. Edit Table or Paste New Values Here'>
-        Start day (Contact Reduction)	Contact Reduction (0 to 1)	Start day (Contact Tracing)	Tests per day (Contact Tracing)	Start day (Universal Testing)	Tests per day (Universal Tracing)
-        0	0.5	0	100	0	10
-        31	0.3	28	300	13	20
-        63	0.2	100	300	31	100
-        78	0			100	100
-        100	0
-
-
-
-
-
-
-
-
-      </textarea>
     </div>
     <div class="w3-border w3-round w3-blue-grey w3-margin-top" style="height:10vh">
       <div> Choose a State To Simulate</div>
@@ -50,14 +28,10 @@
       <h2 id=StateNameTitle style='text-align:center'></h2>
     </p>
     <div class="w3-bar w3-black">
-      <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'reviewTab')">Overview + Cost Parameters</button>
+      <button class="w3-bar-item w3-button tablink w3-red" onclick="switchTab(event, 'reviewTab')">Overview + Cost Parameters</button>
       <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'contactReductionTab')">Contact Reduction</button>
       <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'universalTestingTab')">Universal Testing</button>
       <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'contactTracingTab')">Contact Tracing</button>
-      <button class="w3-bar-item w3-button tablink w3-red" onclick="switchTab(event, 'tablediv')">Policy Table</button>
-    </div>
-    <div id=tablediv class='tabbed' style="display:none">
-      <table id=usertable class='w3-table-all w3-hoverable w3-tiny w3-centered' style="color:black"></table>
     </div>
     <div id=contactReductionTab class='tabbed' style="display:none">
       <div class='w3-panel  w3-col s6'>
@@ -70,7 +44,8 @@
         </div>
       </div>
       <div class='w3-panel w3-col s6 w3-round w3-border' style='height:62.5vh'>
-        User Input Table Goes Here
+        <table id=usertableCR class='w3-table-all w3-hoverable w3-tiny w3-centered' style="color:black"></table>
+        <p><button id=saveCRtable class='w3-button w3-green w3-round w3-block' onclick='savePolicies()'>Save Policies</button></p>
       </div>
     </div>
     <div id=universalTestingTab class='tabbed' style="display:none">
@@ -84,7 +59,8 @@
         </div>
       </div>
       <div class='w3-panel w3-col s6 w3-round w3-border' style='height:62.5vh'>
-        User Input Table Goes Here
+        <table id=usertableUT class='w3-table-all w3-hoverable w3-tiny w3-centered' style="color:black"></table>
+        <p><button id=saveUTtable class='w3-button w3-green w3-round w3-block' onclick='savePolicies()'> Save Policies</button></p>
       </div>
     </div>
     <div id=contactTracingTab class='tabbed' style="display:none">
@@ -98,7 +74,8 @@
         </div>
       </div>
       <div class='w3-panel w3-col s6 w3-round w3-border' style='height:62.5vh'>
-        User Input Table Goes Here
+        <table id=usertableCT class='w3-table-all w3-hoverable w3-tiny w3-centered' style="color:black"></table>
+        <p><button id=saveCTtable class='w3-button w3-green w3-round w3-block' onclick='savePolicies()'> Save Policies</button></p>
       </div>
     </div>
     <div id=reviewTab class='tabbed'>
@@ -136,7 +113,7 @@
         <div id=overviewStateChoice  style='font-size:16px'> State Choice: xyz</div>
         <div class='w3-border-top' id=overviewCost1 style='font-size:12px'>Contact Tracing: $50</div>
         <div id=overviewCost2 style='font-size:12px'>Universal Testing: $60</div>
-        <div id=overviewCost3 style='font-size:12px'>Unemployment Wage: $50</div>
+        <div id=overviewCost3 style='font-size:12px'>Unemployment Wage: $69</div>
       </p>
       <p class='w3-border-top'>Policy Builder Checklist</p>
       <table class='w3-table-all w3-tiny w3-centered' style='color:black'>
@@ -174,7 +151,7 @@
     </div>
     <div class='w3-border w3-panel w3-round w3-blue-grey' style="height:20vh">
       <div> Final Review </div>
-      <p><button class='w3-button w3-green w3-round' onclick='graph_policy()'>Save Policy Changes</button></p>
+      <p><button class='w3-button w3-green w3-round' onclick='savePolicies()'>Parameter Review</button></p>
       <p><button class='w3-button w3-red w3-round' onclick='calibrate()'>Run Simulation</button></p>
     </div>
   </div>
@@ -247,64 +224,71 @@ function stateDropdown(id='selectState'){
   }
 }
 
-clip()
-document.getElementById('userpaste').innerHTML = ''
 graph_stateChoice()
 
 
-function graph_policy(){
-  data1 = tableToJson('usertable', 'column')
-  data2 = tableToJson('usertable', 'column')
-  data3 = tableToJson('usertable', 'column')
-  data4 = tableToJson('usertable', 'column')
-  data5 = tableToJson('usertable', 'column')
-  data6 = tableToJson('usertable', 'column')
-  // ^ For some reason, need to have unique datas, see userInput-line.js to figure out
-  makeUserInputLine('inputGraphContactReduction1', 'viewInputContactReduction1',
-                    data1, dataType='Contact Reduction', .4);
-  makeUserInputLine('inputGraphContactTracing1', 'viewInputContactTracing1',
-                    data2, dataType='Contact Tracing', .3)
-  makeUserInputLine('inputGraphUniversalTracing1', 'viewInputUniversalTracing1',
-                    data3, dataType='Universal Testing', .3)
-  makeUserInputLine('inputGraphContactReduction2', 'viewInputContactReduction2',
-                    data4, dataType='Contact Reduction', .3)
-  makeUserInputLine('inputGraphContactTracing2', 'viewInputContactTracing2',
-                    data5, dataType='Contact Tracing', .3)
-  makeUserInputLine('inputGraphUniversalTracing2', 'viewInputUniversalTracing2',
-                    data6, dataType='Universal Testing', .3)
+function savePolicies(){
+  dataCR = tableToJson("usertableCR", 'column')
+  dataUT = tableToJson("usertableUT", 'column')
+  dataCT = tableToJson("usertableCT", 'column')
+  makeABCLine('inputGraphContactReduction1', 'viewInputContactReduction1',
+              dataCR, dataType='Contact Reduction', .4);
+  makeABCLine('inputGraphContactTracing1', 'viewInputContactTracing1',
+              dataCT, dataType='Contact Tracing', .4)
+  makeABCLine('inputGraphUniversalTracing1', 'viewInputUniversalTracing1',
+              dataUT, dataType='Universal Testing', .4)
 
+  dataCR = tableToJson("usertableCR", 'column')
+  dataUT = tableToJson("usertableUT", 'column')
+  dataCT = tableToJson("usertableCT", 'column')
+  makeABCLine('inputGraphContactReduction2', 'viewInputContactReduction2',
+                    dataCR, dataType='Contact Reduction', .3)
+  makeABCLine('inputGraphContactTracing2', 'viewInputContactTracing2',
+                    dataCT, dataType='Contact Tracing', .3)
+  makeABCLine('inputGraphUniversalTracing2', 'viewInputUniversalTracing2',
+                    dataUT, dataType='Universal Testing', .3)
 }
 
-function clip() {
-    var text = d3.select("#userpaste")._groups[0][0].value // get user pasted data
-    clipRows = text.split(String.fromCharCode(10));  // split into rows
-    for (i=0; i<clipRows.length; i++) {
-        // split rows into columns
-        clipRows[i] = clipRows[i].split(String.fromCharCode(9));
-    }
-    document.getElementById('usertable').innerHTML = '' // clear old table if any
-    table = document.getElementById("usertable") // establish new table
 
-    numRows = 10
-    numCol = 6
-    for (i=0; i<numRows; i++) {
+function makeEmptyTable(parentDiv, startVal, endVal) {
+
+    //document.getElementById(parentDiv).innerHTML = '' // clear old table if any
+    table = document.getElementById(parentDiv) // establish new table
+    numRows = 12
+    numCol = 4
+
+    keys = ['Date', 'Plan A', 'Plan B', 'Plan C']
+    row = table.insertRow();
+    for (key in keys) {
+      let th = document.createElement("th");
+      let text = document.createTextNode(keys[key]);
+      th.appendChild(text);
+      row.appendChild(th);
+    }
+
+    for (i=1; i < numRows; i++) {
         newRow = table.insertRow();
         for (j=0; j<numCol; j++) {
             newCell = newRow.insertCell();
-            if (clipRows[i][j] == undefined || clipRows[i][j].length == 0) {
-                newCell.contentEditable = true
-                newCell.innerText = '';
-                newCell.className = 'w3-border'
+            if (j == 0) {
+              newCell.innerText = "Week " + String(i)
+            } else if (j == 1){
+              newCell.innerText = (startVal + ((endVal - startVal) / (numRows-1) * i)).toFixed(2)
+              newCell.contentEditable = true;
+
+            } else {
+              newCell.innerText = '';
+              newCell.contentEditable = true;
             }
-            else {
-                newCell.contentEditable = true
-                newCell.innerText = clipRows[i][j];
-                newCell.className = 'w3-border'
-            }
+            newCell.className = 'w3-border'
         }
     }
-    graph_policy()
 }
+
+makeEmptyTable("usertableCR", startVal=1, endVal=.25)
+makeEmptyTable("usertableCT", startVal=100, endVal=300)
+makeEmptyTable("usertableUT", startVal=100, endVal=300)
+savePolicies()
 
 function graph_stateChoice(){
   var state = d3.select("#simState")._groups[0][0].value // get user pasted data
@@ -319,7 +303,7 @@ function graph_stateChoice(){
 }
 
 function calibrate(){
-  graph_policy()
+  savePolicies()
   var state = d3.select("#simState")._groups[0][0].value // get user pasted data
   to_python = [{'state':state, 'rl_input':tableToJson("usertable")}]
   $.ajax({
@@ -330,10 +314,8 @@ function calibrate(){
         success: function (dataset) {
           all_data = dataset.data;
           simSummary = to_object(all_data, 'Summary')
-          //console.log(to_object(all_data, 'Summary'))
           switchTab('simResultGraphs')
           d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data){
-            //console.log(covid_data)
             makeCovidTrackerLine('resultGraphCases', 'infsim', covid_data,
               scaleType='linear', state=state, dataType='positive',cumulative='cumulative',
               simulation=simSummary, simDataType='projected cumulative diagnosis')
@@ -378,9 +360,18 @@ function tableToJson(id, type='index') {
     // go through cells
     for (var i=0; i<table.rows[0].cells.length; i++) {
       var colData = [];
+      remember = parseFloat(0)
       for (var j=1; j<table.rows.length ; j++) {
-        colData.push(parseFloat(table.rows[j].cells[i].innerHTML));
-      }
+        if (i==0){
+          colData.push(parseFloat(table.rows[j].cells[i].innerHTML.split(" ")[1]));
+        }else{
+          if (table.rows[j].cells[i].innerHTML != ''){
+            remember = table.rows[j].cells[i].innerHTML
+            colData.push(parseFloat(table.rows[j].cells[i].innerHTML));
+          } else {
+            colData.push(parseFloat(remember));
+          }
+      }}
       data[headers[i]] = colData;
     }
   }
@@ -395,16 +386,14 @@ function switchTab(evt, showTab) {
   }
 
   tablinks = document.getElementsByClassName("tablink");
-  console.log(tablinks)
   for (i = 0; i < x.length; i++) {
-    console.log(tablinks[i])
     tablinks[i].className = tablinks[i].className.replace("w3-red", "");
   }
 
   document.getElementById(showTab).style.display = "block";
   evt.currentTarget.className += " w3-red";
   graph_stateChoice()
-  graph_policy()
+  savePolicies()
   }
 </script>
 {% endblock %}
