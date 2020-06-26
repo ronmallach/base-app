@@ -10,9 +10,6 @@ from app.COVID19master import global_var as gv # RON EDIT
 from app.COVID19master import outputs as op # RON EDIT
 from app.COVID19master import read_policy_mod as rp # RON EDIT
 
-# import global_var as gv # RON EDIT
-# import outputs as op # RON EDIT
-# import read_policy_mod as rp # RON EDIT
 
 
 class CovidModel():

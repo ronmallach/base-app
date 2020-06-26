@@ -46,81 +46,59 @@ def download_newfile():
     path = 'policy_example.xlsx'
     return send_file(path, attachment_filename='new_test.xlsx', as_attachment=True)
 
-@bp.route('/calibrate_model', methods=('GET','POST'))
-def calibrate_model():
-    get = request.get_json()[0] # retrieve input data from ajax request
-    to_df = {}
-    state = get['state']
-    for i,v in enumerate(get['rl_input']):
-        to_df[i] = v
-    df = pd.DataFrame.from_dict(to_df,orient='index')
-    rl_input = read_policy_mod.read_policy(df)
-    heroku = False
-    if len(os.getcwd()) < 25:
-        heroku = True
-    covid_model = COVID_model.run_calibration(state='NY', decision=rl_input, heroku=heroku)
-    results = COVID_model.run_simulation(covid_model, state = "NY", decision = rl_input, heroku=heroku)
-    results['Summary']['Date'] = results['Summary'].index.astype(str)
-    for k,v in results.items():
-        results[k].index = results[k].index.astype(str)
-    to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
-    return jsonify(status='success', data=to_java)
-
-# @bp.route('/simulate_model', methods=('GET','POST'))
-# def simulate_model(covid_model=covid_model):
-#     print(covid_model)
-#     t = time.time()
-#     get = request.get_json() # retrieve input data from ajax request
+# @bp.route('/calibrate_model', methods=('GET','POST'))
+# def calibrate_model():
+#     get = request.get_json()[0] # retrieve input data from ajax request
 #     to_df = {}
-#     for i,v in enumerate(get):
+#     state = get['state']
+#     for i,v in enumerate(get['rl_input']):
 #         to_df[i] = v
 #     df = pd.DataFrame.from_dict(to_df,orient='index')
 #     rl_input = read_policy_mod.read_policy(df)
 #     heroku = False
-#     if heroku == False:
-#         what = os.listdir(os.path.join(os.getcwd(), 'app\\COVID19master\\data'))
-#     else:
-#         what = os.listdir(os.path.join(os.getcwd(), 'app/COVID19master/data'))
-
+#     if len(os.getcwd()) < 25:
+#         heroku = True
+#     covid_model = COVID_model.run_calibration(state='NY', decision=rl_input, heroku=heroku)
 #     results = COVID_model.run_simulation(covid_model, state = "NY", decision = rl_input, heroku=heroku)
+#     results['Summary']['Date'] = results['Summary'].index.astype(str)
 #     for k,v in results.items():
 #         results[k].index = results[k].index.astype(str)
 #     to_java = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in results.items()}
-#     print(time.time() - t)
 #     return jsonify(status='success', data=to_java)
 
-# @bp.route('/login', methods=['GET', 'POST'])
-# def login():
-#     if current_user.is_authenticated:
-#         return redirect(url_for('index'))
-#     form = LoginForm()
-#     if form.validate_on_submit():
-#         user = User.query.filter_by(username=form.username.data).first()
-#         if user is None or not user.check_password(form.password.data):
-#             flash('Invalid username or password')
-#             return redirect(url_for('login'))
-#         login_user(user, remember=form.remember_me.data)
-#         next_page = request.args.get('next')
-#         if not next_page or url_parse(next_page).netloc != '':
-#              next_page = url_for('index')
-#         return redirect(next_page)
-#     return render_template('login.html', title='Sign In', form=form)
+@bp.route('/prep_sim', methods=('GET','POST'))
+def prep_sim():
+    get = request.get_json() # retrieve input data from ajax request
+    rl_input = read_policy_mod.read_ABC(get)
+    state = get['state']
+    heroku = False
+    timer = time.time()
+    if len(os.getcwd()) < 25:
+        heroku = True
+    results = {}
+    for plan, decision in rl_input.items():
+        results[plan] = ''
+        covid_model = COVID_model.run_calibration(state='NY',
+                                                  decision=decision,
+                                                  heroku=heroku)
+        output = COVID_model.run_simulation(covid_model,
+                                                   state = "NY",
+                                                   decision = decision,
+                                                   heroku=heroku)
+        output['Summary']['Date'] = output['Summary'].index.astype(str)
+        for k,v in output.items():
+            output[k].index = output[k].index.astype(str)
+        results[plan] = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in output.items()}
+    to_java = results
+    time_now = time.time()
+    if time_now - timer < 10000:
+        to_java['finished'] = 'False'
+    return jsonify(status='success', data=to_java)
 
-# @bp.route('/logout')
-# def logout():
-#     logout_user()
-#     return redirect(url_for('index'))
 
-# @bp.route('/register', methods=['GET', 'POST'])
-# def register():
-#     if current_user.is_authenticated:
-#         return redirect(url_for('index'))
-#     form = RegistrationForm()
-#     if form.validate_on_submit():
-#         user = User(username=form.username.data, email=form.email.data)
-#         user.set_password(form.password.data)
-#         db.session.add(user)
-#         db.session.commit()
-#         flash('Congratulations, you are now a registered user!')
-#         return redirect(url_for('index'))
-#     return render_template('register.html', title='Register', form=form)
+@bp.route('/continue_sim', methods=('GET','POST'))
+def continue_sim():
+    get = request.get_json() # retrieve input data from ajax request
+    get['finished'] ='true'
+    print('hello')
+    return jsonify(status='success', data=get)

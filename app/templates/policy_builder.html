@@ -152,7 +152,7 @@
     <div class='w3-border w3-panel w3-round w3-blue-grey' style="height:20vh">
       <div> Final Review </div>
       <p><button class='w3-button w3-green w3-round' onclick='savePolicies()'>Parameter Review</button></p>
-      <p><button class='w3-button w3-red w3-round' onclick='calibrate()'>Run Simulation</button></p>
+      <p><button class='w3-button w3-red w3-round' onclick='start_sim()'>Run Simulation</button></p>
     </div>
   </div>
 </div>
@@ -326,6 +326,70 @@ function calibrate(){
               scaleType='linear', state=state, dataType='death', cumulative='cumulative',
               simulation=simSummary, simDataType='projected cumulative deaths')
           })
+        },
+  });
+}
+
+function data_for_sim(){
+  var dataCR = tableToJson("usertableCR", 'column')
+  var dataUT = tableToJson("usertableUT", 'column')
+  var dataCT = tableToJson("usertableCT", 'column')
+  console.log(dataCR)
+  costCT = d3.select("#costCT")._groups[0][0].value
+  costUT = d3.select("#costUT")._groups[0][0].value
+  costUW = d3.select("#costUW")._groups[0][0].value
+  var state = d3.select("#simState")._groups[0][0].value // get user pasted data
+  to_python = {'state':state,
+               'policy': {'CT':{'Date':dataCT['Date'],
+                                'A':dataCT['PlanA'],
+                                'B':dataCT['PlanB'],
+                                'C':dataCT['PlanC'],},
+                          'CR':{'Date':dataCR['Date'],
+                                'A':dataCR['PlanA'],
+                                'B':dataCR['PlanB'],
+                                'C':dataCR['PlanC'],},
+                          'UT':{'Date':dataUT['Date'],
+                                'A':dataUT['PlanA'],
+                                'B':dataUT['PlanB'],
+                                'C':dataUT['PlanC'],},},
+               'cost':{'CT':costCT, 'UT':costUT, 'UW':costUW}}
+  return to_python
+}
+
+function start_sim(){
+  to_python = data_for_sim()
+  console.log(to_python)
+  $.ajax({
+        type: "POST",
+        url: "prep_sim", // url on python side
+        data: JSON.stringify(to_python),
+        contentType: "application/json",
+        success: function (dataset) {
+          all_data = dataset.data;
+          console.log(all_data)
+          if (all_data['finished'] == 'False'){
+            continue_sim(all_data)
+          }
+          //simSummary = to_object(all_data, 'Summary')
+          //console.log(simSummary)
+        },
+  });
+}
+
+function continue_sim(data){
+  $.ajax({
+        type: "POST",
+        url: "continue_sim", // url on python side
+        data:JSON.stringify(data),
+        contentType: "application/json",
+        success: function (dataset) {
+          all_data = dataset.data;
+          console.log(all_data)
+          if (all_data['finished'] == 'False'){
+            continue_sim(all_data)
+          }
+          //simSummary = to_object(all_data, 'Summary')
+          //console.log(simSummary)
         },
   });
 }
