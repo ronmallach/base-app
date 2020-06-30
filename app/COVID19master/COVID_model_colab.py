@@ -476,7 +476,8 @@ inv_dt = 10
 
 # Funtion for one scenario analysis
 def main_run(State='NY', decision=decision, uw=50, costs=[50,50,50],
-             t_now=0, T_max=decision.shape[0]*inv_dt, data=None, heroku=False):
+             t_now=0, T_max=decision.shape[0]*inv_dt, data=None, 
+             pre_data = None, heroku=False):
     #decision = set_up_COVID_sim(State)
     # mod costs
     path = os.getcwd()
@@ -493,38 +494,48 @@ def main_run(State='NY', decision=decision, uw=50, costs=[50,50,50],
     model = CovidModel(data=data, heroku=heroku)
     i = t_now
     d_m = decision[i]
-    model.t = t_now
-    model.T_total = T_max
+    # model.t = t_now
+    # print(t_now)
+    # input()
+    # model.T_total = T_max
     while model.t < model.T_total and timer < max_time:
         model.t += 1
-        print('t', model.t)
+        # print('t', model.t)
         #print('tot_num_hosp', model.num_uni_test[model.t-1])
         if i % model.inv_dt == 0:
             d_m = decision[i//model.inv_dt]
+
         model.step(action_t = d_m)
         i += 1
         timer = time.time() - time_start
-    dic = {'self.pop_dist_sim': model.pop_dist_sim[model.t-1].tolist(),
-           'self.num_diag': model.num_diag[model.t].tolist(),
-           'self.num_hosp': model.num_hosp[model.t].tolist(),
-           'self.num_dead': model.num_dead[model.t].tolist(),
-           #'self.num_new_inf': sample_model.num_new_inf[sample_model.t].tolist(),
-           'self.num_base_test': model.num_base_test[model.t].tolist(),
-           'self.num_uni_test': model.num_uni_test[model.t].tolist(),
-           'self.num_trac_test': model.num_trac_test[model.t].tolist(),
-           'self.tot_num_diag': model.tot_num_diag[model.t],
-           'self.tot_num_dead': model.tot_num_dead[model.t],
-           'self.tot_num_hosp': model.tot_num_hosp[model.t],
-           #'self.tot_num_new_inf': sample_model.tot_num_new_inf[sample_model.t],
-           'self.rate_unemploy': model.rate_unemploy[model.t],
-           'self.next_start_day': gv.begin_decision_date.strftime("%m/%d/%Y")}
-    df1, df2, df3, df4, df5 = op.output_var(sizeofrun =int(model.T_total/model.inv_dt),
-                           state = model.enter_state,
-                           start_d = model.sim_start_day,
-                           decision_d = model.decision_making_day).write_current_results()
-    output = {'VSL':df1,'Unemployment':df2,'Testing':df3,'Summary':df4,
-                'Decision Choice':df5}
-    print(output)
+
+
+    mod = model.t - model.d * model.inv_dt
+    date_range = pd.date_range(start= model.sim_start_day, periods= model.d, freq = 'D')
+
+    # print(type(date_range[-1])
+    dic = {'self.pop_dist_sim': model.pop_dist_sim[model.t- mod].tolist(),
+           'self.num_diag': model.num_diag[model.t- mod].tolist(),
+           'self.num_hosp': model.num_hosp[model.t- mod].tolist(),
+           'self.num_dead': model.num_dead[model.t- mod].tolist(),
+           'self.num_base_test': model.num_base_test[model.t- mod].tolist(),
+           'self.num_uni_test': model.num_uni_test[model.t- mod].tolist(),
+           'self.num_trac_test': model.num_trac_test[model.t-mod].tolist(),
+           'self.tot_num_diag': model.tot_num_diag[model.t-mod],
+           'self.tot_num_dead': model.tot_num_dead[model.t-mod],
+           'self.tot_num_hosp': model.tot_num_hosp[model.t-mod],
+           'self.rate_unemploy': model.rate_unemploy[model.t-mod],
+           'self.next_start_day': date_range[-1].strftime("%m/%d/%Y")}
+
+    output = model.op_ob.write_output(pre_results = gv.pre_results_df, date_range = date_range, pre_data = pre_data)
+    # df1, df2, df3, df4, df5 = op.output_var(sizeofrun =int(model.T_total/model.inv_dt),
+    #                        state = model.enter_state,
+    #                        start_d = model.sim_start_day,
+    #                        decision_d = model.decision_making_day).write_current_results()
+    # output = {'VSL':df1,'Unemployment':df2,'Testing':df3,'Summary':df4,
+    #             'Decision Choice':df5}
+    # print(output)
+
     return dic, output
     # df1 = model.op_ob.plot_decision_output_1()
     # df2 = model.op_ob.plot_decision_output_2(gv.acutal_unemp)
@@ -723,7 +734,9 @@ def main_run(State='NY', decision=decision, uw=50, costs=[50,50,50],
 #     else:
 #         main_run(State)
 
-# if  __name__ == "__main__":
+if  __name__ == "__main__":
+    main_run()
+
 
 #     State = 'NY' # default is New York
 #     set_up_COVID_sim(State)   # initialize model

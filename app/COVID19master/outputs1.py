@@ -3,7 +3,7 @@
 import numpy as np
 #import matplotlib.pyplot as plt
 import pandas as pd
-#from matplotlib.ticker import FuncFormatter
+# from matplotlib.ticker import FuncFormatter
 #import seaborn as sns
 #import ImageMerge as im
 
@@ -48,80 +48,87 @@ class output_var:
 
 
     # write results from current simulation to a new DataFrame
-    def write_current_results(self):
-
+    def write_current_results(self, date_range = None):
+       
+        self.date_range = date_range
+        length = self.date_range.shape[0] 
+        print(len(self.num_dead_plot[:length]))
         df1 = pd.DataFrame({'Date': self.date_range,
-                           'Value of statistical life-year (VSL) loss': self.VSL_plot,
-                           'Number of new deaths': self.num_dead_plot})
+                           'Value of statistical life-year (VSL) loss': self.VSL_plot[:length],
+                           'Number of new deaths': self.num_dead_plot[:length]})
 
         df2 = pd.DataFrame({'Date': self.date_range,
-                           'Wage loss': self.SAL_plot,
-                           'Unemployment rate assumption under selected social distancing':self.unemployment})
+                           'Wage loss': self.SAL_plot[:length],
+                           'Unemployment rate assumption under selected social distancing':self.unemployment[:length]})
 
         df3 = pd.DataFrame({'Date': self.date_range,
-                           'cost of universal testing': self.univ_test_cost,
-                           'cost of contact tracing':self.trac_test_cost,
-                           'cost of symptom-based testing': self.bse_test_cost,
-                           'total cost of testing': self.tot_test_cost_plot,
-                           'number of new diagnosis through contact tracing': self.num_trac,
-                           'number of new diagnosis through symptom-based testing': self.num_base,
-                           'number of new diagnosis through universal testing':self.num_uni,
-                           'number of contact tracing test needed': self.T_c_plot})
+                           'cost of universal testing': self.univ_test_cost[:length],
+                           'cost of contact tracing':self.trac_test_cost[:length],
+                           'cost of symptom-based testing': self.bse_test_cost[:length],
+                           'total cost of testing': self.tot_test_cost_plot[:length],
+                           'number of new diagnosis through contact tracing': self.num_trac[:length],
+                           'number of new diagnosis through symptom-based testing': self.num_base[:length],
+                           'number of new diagnosis through universal testing':self.num_uni[:length],
+                           'number of contact tracing test needed': self.T_c_plot[:length]})
 
 
         df4 = pd.DataFrame({'Date': self.date_range,
-                           'Percent reduction in contacts through social distancing': self.policy_plot[:, 0],
-                           'Testing capacity – maximum tests per day through contact tracing': self.policy_plot[:, 1],
-                           'Testing capacity – maximum tests per day through universal testing': self.policy_plot[:, 2]})
+                           'Percent reduction in contacts through social distancing': self.policy_plot[:length, 0],
+                           'Testing capacity – maximum tests per day through contact tracing': self.policy_plot[:length, 1],
+                           'Testing capacity – maximum tests per day through universal testing': self.policy_plot[:length, 2]})
         # df4['Percent reduction in contacts through social distancing'] = df4['Percent reduction in contacts through social distancing'].astype(int)
         # df4['Testing capacity – maximum tests per day through universal testing'] = df4['Testing capacity – maximum tests per day through universal testing'].astype(int)
 
         df5 =  pd.DataFrame({'Date': self.date_range,
-                           'simulated cumulative diagnosis': self.cumulative_inf,
-                           'simulated cumulative hospitalized': self.cumulative_hosp,
-                           'simulated cumulative deaths': self.cumulative_dead,
-                           'number of infected, diagnosed': self.num_diag_inf,
-                           'number of infected, undiagnosed': self.num_undiag_inf,
-                           'number of contact tracing test needed': self.T_c_plot})
+                           'simulated cumulative diagnosis': self.cumulative_inf[:length],
+                           'simulated cumulative hospitalized': self.cumulative_hosp[:length],
+                           'simulated cumulative deaths': self.cumulative_dead[:length],
+                           'number of infected, diagnosed': self.num_diag_inf[:length],
+                           'number of infected, undiagnosed': self.num_undiag_inf[:length],
+                           'number of contact tracing test needed': self.T_c_plot[:length]})
 
         return df1, df2, df3, df4, df5
 
-
+    
     # Function to combine previous simulation results and current simulation
     # results together to one single Excel file with categorized sheets
-    def write_output(self, pre_results):
+    def write_output(self, pre_results, date_range, pre_data = None):
 
-        df1_c, df2_c, df3_c, df4_c, df5_c = self.write_current_results()
+        df1_c, df2_c, df3_c, df4_c, df5_c = self.write_current_results(date_range)
+        if pre_data == None:
+            df1 = pre_results.parse(sheet_name='VSL', index_col = 0)
+            df2 = pre_results.parse(sheet_name='Unemployment', index_col = 0)
+            df3 = pre_results.parse(sheet_name= 'Testing', index_col = 0)
+            df4 = pre_results.parse(sheet_name='Decision choice', index_col = 0)
+            df5 = pre_results.parse(sheet_name='Summary', index_col = 0)
+        else:
+            df1 = pre_data[0]
+            df2 = pre_data[1]
+            df3 = pre_data[2]
+            df4 = pre_data[3]
+            df5 = pre_data[4]
 
-        df1 = pre_results.parse(sheet_name='VSL', index_col = 0)
         df1 = df1.append(df1_c, ignore_index=True)
-
-        df2 = pre_results.parse(sheet_name='Unemployment', index_col = 0)
         df2 = df2.append(df2_c, ignore_index=True)
-
-        df3 = pre_results.parse(sheet_name= 'Testing', index_col = 0)
         df3 = df3.append(df3_c, ignore_index=True)
-
-        df4 = pre_results.parse(sheet_name='Decision choice', index_col = 0)
         df4 = df4.append(df4_c, ignore_index=True)
-
-        df5 = pre_results.parse(sheet_name='Summary', index_col = 0)
         df5 = df5.append(df5_c, ignore_index=True)
 
-        actual_data = pre_results.parse(sheet_name ='Actual epidemic data', index_col = 0)
-        actual_unemp = pre_results.parse(sheet_name ='Actual unemployment rate', index_col = 0)
+        # actual_data = pre_results.parse(sheet_name ='Actual epidemic data', index_col = 0)
+        # actual_unemp = pre_results.parse(sheet_name ='Actual unemployment rate', index_col = 0)
 
         # write to a new file
-        writer = pd.ExcelWriter('{0}_final_result.xlsx'.format(self.State), engine = 'xlsxwriter')
+        # writer = pd.ExcelWriter('{0}_final_result.xlsx'.format(self.State), engine = 'xlsxwriter')
 
-        df1.to_excel(writer, sheet_name = 'VSL')
-        df2.to_excel(writer, sheet_name = 'Unemployment')
-        df3.to_excel(writer, sheet_name = 'Testing')
-        df4.to_excel(writer, sheet_name = 'Decision choice')
-        df5.to_excel(writer, sheet_name = 'Summary')
+        # df1.to_excel(writer, sheet_name = 'VSL')
+        # df2.to_excel(writer, sheet_name = 'Unemployment')
+        # df3.to_excel(writer, sheet_name = 'Testing')
+        # df4.to_excel(writer, sheet_name = 'Decision choice')
+        # df5.to_excel(writer, sheet_name = 'Summary')
 
-        writer.save()
-        return df1, df2, df3, df4, df5, actual_data, actual_unemp
+        # writer.save()
+        # return df1, df2, df3, df4, df5, actual_data, actual_unemp
+        return df1, df2, df3, df4, df5
 
 
     # Plot all the results for single run
