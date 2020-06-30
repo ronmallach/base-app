@@ -81,7 +81,11 @@ class CovidModel():
         self.sim_start_day = self.pre_results['self.next_start_day']
 
         # number of days before decision making
-        self.pre_sim_days = abs(self.decision_making_day - self.sim_start_day).days
+        if self.decision_making_day >= self.sim_start_day:
+
+            self.pre_sim_days = abs(self.decision_making_day - self.sim_start_day).days
+        else:
+            self.pre_sim_days = 0
 
         # total simulation time period
         self.T_total = self.inv_dt * (gv.T_max + self.pre_sim_days)
@@ -498,10 +502,11 @@ def main_run(State='NY', decision=decision, uw=50, costs=[50,50,50],
     # print(t_now)
     # input()
     # model.T_total = T_max
+
+    ##### model.t doesn't start with 0 so commented line 497
     while model.t < model.T_total and timer < max_time:
         model.t += 1
         # print('t', model.t)
-        #print('tot_num_hosp', model.num_uni_test[model.t-1])
         if i % model.inv_dt == 0:
             d_m = decision[i//model.inv_dt]
 
@@ -509,7 +514,7 @@ def main_run(State='NY', decision=decision, uw=50, costs=[50,50,50],
         i += 1
         timer = time.time() - time_start
 
-    
+    # the output is recorded every 10 time steps 
     mod = model.t - model.d * model.inv_dt 
     date_range = pd.date_range(start= model.sim_start_day, periods= model.d, freq = 'D')
 
