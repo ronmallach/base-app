@@ -1,13 +1,10 @@
-from flask import (
-    Blueprint, flash, redirect, render_template, request, url_for,
-    jsonify, Response, send_file
-)
-
-from app import db
-from app.models import User
-
+from flask import (Blueprint, flash, redirect, render_template, request, 
+                   url_for, jsonify, Response, send_file)
+# from app import db
+# from app.models import User
 import pandas as pd
 from app.COVID19master import COVID_model
+from app.COVID19master import COVID_model_colab
 from app.COVID19master import read_policy_mod
 import numpy as np
 import time
@@ -21,7 +18,6 @@ import time
 import json
 import os
 
-covid_model='dummy'
 
 bp = Blueprint('blueprint', __name__)
 
@@ -69,6 +65,8 @@ def download_newfile():
 @bp.route('/prep_sim', methods=('GET','POST'))
 def prep_sim():
     get = request.get_json() # retrieve input data from ajax request
+    print(get)
+    print(get)
     rl_input = read_policy_mod.read_ABC(get)
     state = get['state']
     heroku = False
@@ -76,24 +74,71 @@ def prep_sim():
     if len(os.getcwd()) < 25:
         heroku = True
     results = {}
-    for plan, decision in rl_input.items():
+    tracker = {}
+    for plan, decision in rl_input.items(): 
         results[plan] = ''
-        covid_model = COVID_model.run_calibration(state='NY',
-                                                  decision=decision,
-                                                  heroku=heroku)
-        output = COVID_model.run_simulation(covid_model,
-                                                   state = "NY",
-                                                   decision = decision,
-                                                   heroku=heroku)
-        output['Summary']['Date'] = output['Summary'].index.astype(str)
+        dic, output = COVID_model_colab.main_run(State='NY',
+                                                 decision=decision,
+                                                 uw=50,
+                                                 costs= [50, 50, 50],
+                                                 t_now=0,
+                                                 T_max=decision.shape[0]*10,
+                                                 data=None,
+                                                 heroku=heroku)
+        # covid_model = COVID_model.run_calibration(state='NY',
+        #                                           decision=decision,
+        #                                           heroku=heroku)
+        # output = COVID_model.run_simulation(covid_model,
+        #                                            state = "NY",
+        #                                            decision = decision,
+        #                                            heroku=heroku)
+        #output['Summary']['Date'] = output['Summary'].index.astype(str)
+        print(output)
+        tracker[plan] = {k : json.dumps(v) for k,v in dic.items()}
         for k,v in output.items():
             output[k].index = output[k].index.astype(str)
         results[plan] = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in output.items()}
-    to_java = results
+    to_java = {}
+    to_java['results'] = results
+    to_java['dic'] = tracker
     time_now = time.time()
-    if time_now - timer < 10000:
-        to_java['finished'] = 'False'
+    # if time_now - timer < 10000:
+    #     to_java['finished'] = 'False'
+    #     to_java = {'finished':'False'}
     return jsonify(status='success', data=to_java)
+
+# @bp.route('/prep_sim_old', methods=('GET','POST'))
+# def prep_sim_old():
+#     get = request.get_json() # retrieve input data from ajax request
+#     rl_input = read_policy_mod.read_ABC(get)
+#     state = get['state']
+#     heroku = False
+#     timer = time.time()
+#     if len(os.getcwd()) < 25:
+#         heroku = True
+#     results = {}
+#     for plan, decision in rl_input.items(): 
+#         results[plan] = ''
+#         output = COVID_model.run_calibration(state='NY',
+#                                                   decision=decision,
+#                                                   heroku=heroku)
+#         # covid_model = COVID_model.run_calibration(state='NY',
+#         #                                           decision=decision,
+#         #                                           heroku=heroku)
+#         # output = COVID_model.run_simulation(covid_model,
+#         #                                            state = "NY",
+#         #                                            decision = decision,
+#         #                                            heroku=heroku)
+#         output['Summary']['Date'] = output['Summary'].index.astype(str)
+#         for k,v in output.items():
+#             output[k].index = output[k].index.astype(str)
+#         results[plan] = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in output.items()}
+#     to_java = results
+#     time_now = time.time()
+#     if time_now - timer < 10000:
+#         to_java['finished'] = 'False'
+#         to_java = {'finished':'False'}
+#     return jsonify(status='success', data=to_java)
 
 
 @bp.route('/continue_sim', methods=('GET','POST'))

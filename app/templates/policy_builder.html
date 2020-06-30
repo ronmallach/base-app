@@ -409,6 +409,7 @@ function start_sim(){
         success: function (dataset) {
           all_data = dataset.data;
           console.log(all_data)
+          console.log('hello')
           if (all_data['finished'] == 'False'){
             continue_sim(all_data)
           }

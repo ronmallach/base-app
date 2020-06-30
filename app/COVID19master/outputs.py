@@ -4,11 +4,8 @@ import pandas as pd
 #import matplotlib.pyplot as plt
 #from pylab import rcParams
 #import pdb
-
-
 from app.COVID19master import global_var as gv
 #import global_var as gv
-
 
 
 class output_var:
@@ -17,7 +14,7 @@ class output_var:
         self.time_step = np.zeros(sizeofrun)
         self.action_plot = np.zeros(sizeofrun)
         self.a_sd_plot = np.zeros(sizeofrun)
-        self.num_inf_plot = np.zeros(sizeofrun)  #reported cases             
+        self.num_inf_plot = np.zeros(sizeofrun)  #reported cases
         self.num_hosp_plot = np.zeros(sizeofrun)  #severe cases
         self.num_dead_plot = np.zeros(sizeofrun)
         self.VSL_plot = np.zeros(sizeofrun)
@@ -39,7 +36,7 @@ class output_var:
         self.num_undiag_inf = np.zeros(sizeofrun)
 
         self.dpi = 150
-        
+
 
     def write_output(self, df1, df2, df3, df4, df5, choice = 1):
         if choice == 1:
@@ -50,7 +47,7 @@ class output_var:
             df3.to_excel(writer, sheet_name = 'Testing')
             df4.to_excel(writer, sheet_name = 'Summary')
             df5.to_excel(writer, sheet_name = 'Decision choice')
-            
+
             writer.save()
         else:
             df_data = np.array( [self.num_inf_plot, self.num_hosp_plot, self.num_dead_plot, self.VSL_plot, self.SAL_plot, \
@@ -66,14 +63,14 @@ class output_var:
 
             df.to_csv("final_result.csv")
 
-      
+
     def plot_decision_output_1(self):
         #plt.style.use('seaborn')
         df_data = np.array([self.VSL_plot, self.num_dead_plot])
         df_name = ['Value of statistical life-year (VSL) loss', 'Number of deaths']
         df = pd.DataFrame(data = df_data.T, index = pd.date_range(start= self.start_d, periods= df_data.shape[1]),columns = df_name)
-        
-        # ### plot figure: number of deaths VS vsl loss 
+
+        # ### plot figure: number of deaths VS vsl loss
         # fig, ax = plt.subplots(2, 1)
         # df.plot(y = 'Number of deaths', title = 'Number of new deaths per day', use_index = True, ax = ax[0], \
         #         legend = False, fontsize = 10, color ='r')
@@ -86,7 +83,7 @@ class output_var:
         # bbox = dict(boxstyle="round", fc="0.8")
         # arrowprops = dict(arrowstyle = "->",connectionstyle = "angle,angleA=0,angleB=90,rad=5")
         # offset = 72
-        
+
         # y2 = df.loc[self.decision_d]['Value of statistical life-year (VSL) loss']
         # ax[1].annotate('Start of decision making',(self.decision_d,y2),xytext=(0.5*offset, 0.3*offset), \
         #   textcoords='offset points',bbox=bbox, arrowprops=arrowprops)
@@ -96,9 +93,9 @@ class output_var:
         #   textcoords='offset points',bbox=bbox, arrowprops=arrowprops)
         # plt.savefig('1.png',dpi = self.dpi)
         # plt.close()
-        
+
         return df
-       
+
 
 
     def plot_decision_output_2(self, actual_unemp):
@@ -107,7 +104,7 @@ class output_var:
         df_data = np.array([date, self.SAL_plot, self.unemployment])
         df_name = ['Date', 'Wage loss', 'Assumption under selected social distancing']
         df = pd.DataFrame(data = df_data.T, index = None, columns = df_name)
-        
+
         # fig, ax = plt.subplots(2, 1)
         # day = pd.Timestamp(self.decision_d)
         # # df.loc[df['Date'] >= self.start_d].plot(x = 'Date', y = 'Assumption under selected social distancing', \
@@ -124,7 +121,7 @@ class output_var:
         # df.loc[df['Date']>= day].plot(x = 'Date', y = 'Wage loss', title = 'Wage loss per day', \
         #                               use_index = True, ax = ax[1], legend = False, fontsize = 10,\
         #                               marker= '.', linestyle = '--')
-        
+
         # ax[1].set_ylabel("US dollars (in millions)")
         # ax[1].set_xlim(left =pd.Timestamp(self.start_d))
 
@@ -132,7 +129,7 @@ class output_var:
         # bbox = dict(boxstyle="round", fc="0.8")
         # arrowprops = dict(arrowstyle = "->",connectionstyle = "angle,angleA=0,angleB=70,rad=5")
         # offset = 72
-        
+
         # y1 = df.loc[df['Date'] == self.decision_d]['Assumption under selected social distancing']
         # ax[0].annotate('Start of decision making',(self.decision_d,y1),xytext=(0.5*offset, -0.5*offset), \
         #                 textcoords='offset points',bbox=bbox, arrowprops=arrowprops)
@@ -145,7 +142,7 @@ class output_var:
         # plt.close()
         df = df.set_index('Date')
         return df
-        
+
 
     def plot_decision_output_3(self):
         #plt.style.use('seaborn')
@@ -156,13 +153,13 @@ class output_var:
                    'by contact tracing', 'by symptom-based testing', 'by universal testing']
         df = pd.DataFrame(data = df_data.T, index = pd.date_range(start= self.start_d, \
                           periods= df_data.shape[1]), columns = df_name)
-        
+
         # df.loc[self.decision_d:].plot(y = 'by universal testing', use_index = True, ax = ax[0], fontsize = 10)
         # df.loc[self.decision_d:].plot(y = 'by contact tracing', use_index = True, ax = ax[0], fontsize = 10)
         # df.plot(y = 'by symptom-based testing', use_index = True, ax = ax[0], fontsize = 10)
         # ax[0].set_title("Number of new diagnosis by testing type per day")
         # ax[0].set_xlim(left = pd.Timestamp(self.start_d))
-        
+
         # df.loc[self.decision_d:].plot(y = 'cost of universal testing', use_index = True, ax = ax[1], fontsize = 10)
         # df.loc[self.decision_d:].plot(y = 'cost of contact tracing', use_index = True, ax = ax[1], fontsize = 10)
         # df.plot(y = 'cost of symptom-based testing', use_index = True, ax = ax[1], fontsize = 10)
@@ -183,16 +180,16 @@ class output_var:
         # plt.close()
         return df
 
-    def plot_cum_output(self, actual_data): 
+    def plot_cum_output(self, actual_data):
         #plt.style.use('seaborn')
         date = pd.date_range(start= self.start_d, periods= self.cumulative_inf.shape[0])
         df_data = np.array([date, self.cumulative_inf, self.cumulative_hosp, self.cumulative_dead, \
                             self.num_diag_inf, self.num_undiag_inf])
         df_name = ['date', 'projected cumulative diagnosis', 'projected cumulative hospitalized',\
                    'projected cumulative deaths', 'number of infected, diagnosed', 'number of infected, undiagnosed']
-        
+
         df = pd.DataFrame(data = df_data.T, index = None, columns = df_name)
-      
+
         # fig, ax = plt.subplots()
         # df.plot(x = 'date', y = 'projected cumulative diagnosis', fontsize = 10, ax = ax)
         # actual_data.plot(x = 'date', y = 'actual cumulative diagnosis', fontsize = 10, ax = ax)
@@ -214,7 +211,7 @@ class output_var:
         # plt.savefig('6.png',dpi = self.dpi)
         # plt.close()
 
-       
+
         # fig3, ax3 = plt.subplots()
         # df.plot(x = 'date', y = 'number of infected, diagnosed', fontsize = 10, ax = ax3)
         # df.plot(x = 'date', y = 'number of infected, undiagnosed', fontsize = 10, ax = ax3)
@@ -240,14 +237,14 @@ class output_var:
         # df.plot(y ='Testing capacity – maximum tests per day through universal testing', \
         #        label = 'User entered decision choice for: \nTesting capacity – maximum tests per day through universal testing', \
         #        use_index = True, fontsize = 10, marker='.',ax = ax[1])
-               
+
         # ax[0].set_xlim(left = pd.Timestamp(self.start_d))
         # ax[1].set_xlim(left = pd.Timestamp(self.start_d))
         # ax[1].set_ylim(bottom = 0)
-        # ax[0].yaxis.set_major_formatter(FuncFormatter(lambda y, _: '{:.0%}'.format(y))) 
+        # ax[0].yaxis.set_major_formatter(FuncFormatter(lambda y, _: '{:.0%}'.format(y)))
         # ax[0].set_ylabel('Proportion')
         # ax[1].set_ylabel('Testing capacity')
-        
+
         # bbox = dict(boxstyle="round", fc="0.8")
         # arrowprops = dict(arrowstyle = "->",connectionstyle = "angle,angleA=0,angleB=70,rad=5")
         # offset = 72
@@ -262,7 +259,7 @@ class output_var:
 
         # plt.savefig('8.png',dpi = self.dpi)
         # plt.close()
-      
+
         return df
 
 
