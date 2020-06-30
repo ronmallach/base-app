@@ -509,8 +509,8 @@ def main_run(State='NY', decision=decision, uw=50, costs=[50,50,50],
         i += 1
         timer = time.time() - time_start
 
-
-    mod = model.t - model.d * model.inv_dt
+    
+    mod = model.t - model.d * model.inv_dt 
     date_range = pd.date_range(start= model.sim_start_day, periods= model.d, freq = 'D')
 
     # print(type(date_range[-1])
@@ -734,8 +734,8 @@ def main_run(State='NY', decision=decision, uw=50, costs=[50,50,50],
 #     else:
 #         main_run(State)
 
-if  __name__ == "__main__":
-    main_run()
+# if  __name__ == "__main__":
+#     main_run()
 
 
 #     State = 'NY' # default is New York
