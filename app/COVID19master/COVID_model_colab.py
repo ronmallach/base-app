@@ -504,7 +504,7 @@ def main_run(State='NY', decision=decision, uw=50, costs=[50,50,50],
     path = os.getcwd()
     state = State
     inv_dt = 10               # insert time steps within each day
-    gv.setup_global_variables(state, inv_dt, path, heroku=False)
+    gv.setup_global_variables(state, inv_dt, path, heroku=heroku)
     gv.md_salary = uw
     gv.test_cost = costs
     gv.T_max = T_max
