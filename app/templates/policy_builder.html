@@ -394,12 +394,16 @@ function data_for_sim(){
                                 'A':dataUT['PlanA'],
                                 'B':dataUT['PlanB'],
                                 'C':dataUT['PlanC'],},},
-               'cost':{'CT':costCT, 'UT':costUT, 'UW':costUW}}
+               'cost':[costCT, costUT, costUT],
+               'UW':costUW,
+               'new':'True'}
   return to_python
 }
 
-function start_sim(){
-  to_python = data_for_sim()
+function start_sim(to_python=null){
+  if (to_python == null){
+    to_python = data_for_sim()
+  }
   console.log(to_python)
   $.ajax({
         type: "POST",
@@ -409,33 +413,18 @@ function start_sim(){
         success: function (dataset) {
           all_data = dataset.data;
           console.log(all_data)
-          console.log('hello')
-          if (all_data['finished'] == 'False'){
-            continue_sim(all_data)
+          console.log(all_data['status'])
+          if (all_data['status'] == 'Not Finished'){
+            console.log('back to it')
+            start_sim(to_python=all_data)
+          } else {
+            console.log(to_object(all_data['A']['to_java'], 'Summary'))
+            console.log(to_object(all_data['B']['to_java'], 'Summary'))
           }
-          //simSummary = to_object(all_data, 'Summary')
-          //console.log(simSummary)
         },
   });
 }
 
-function continue_sim(data){
-  $.ajax({
-        type: "POST",
-        url: "continue_sim", // url on python side
-        data:JSON.stringify(data),
-        contentType: "application/json",
-        success: function (dataset) {
-          all_data = dataset.data;
-          console.log(all_data)
-          if (all_data['finished'] == 'False'){
-            continue_sim(all_data)
-          }
-          //simSummary = to_object(all_data, 'Summary')
-          //console.log(simSummary)
-        },
-  });
-}
 
 function to_object(all_data, name) {
   json = JSON.parse(all_data[name])

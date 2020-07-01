@@ -1,14 +1,17 @@
 import numpy as np
 import pandas as pd
 import time
+import datetime as dt
 import os
+import json
+import copy
 
-# from app.COVID19master import global_var1 as gv # RON EDIT
-# from app.COVID19master import outputs1 as op # RON EDIT
-# from app.COVID19master import read_policy_mod as rp # RON EDIT
+from app.COVID19master import global_var1 as gv # RON EDIT
+from app.COVID19master import outputs1 as op # RON EDIT
+from app.COVID19master import read_policy_mod as rp # RON EDIT
 
-import global_var1 as gv
-import outputs1 as op
+# import global_var1 as gv
+# import outputs1 as op
 # import read_policy_mod as rp
 
 
@@ -73,7 +76,20 @@ class CovidModel():
             self.pre_results = gv.pre_results_dict
         else:
             self.pre_results = data
-
+            if type(self.pre_results['self.next_start_day']) == str:
+                self.pre_results['self.next_start_day'] = dt.date(dt.datetime.strptime(self.pre_results['self.next_start_day'], '%m/%d/%Y').year,
+                                                                  dt.datetime.strptime(self.pre_results['self.next_start_day'], '%m/%d/%Y').month,
+                                                                  dt.datetime.strptime(self.pre_results['self.next_start_day'], '%m/%d/%Y').day)
+            self.pre_results['self.pop_dist_sim'] = np.array(self.pre_results['self.pop_dist_sim'])
+            self.pre_results['self.num_diag'] = np.array(self.pre_results['self.num_diag'])
+            self.pre_results['self.num_dead'] = np.array(self.pre_results['self.num_dead'])
+            self.pre_results['self.num_hosp'] = np.array(self.pre_results['self.num_hosp'])
+            self.pre_results['self.num_trac_test'] = np.array(self.pre_results['self.num_trac_test'])
+            self.pre_results['self.num_uni_test'] = np.array(self.pre_results['self.num_uni_test'])
+            self.pre_results['self.num_base_test'] = np.array(self.pre_results['self.num_base_test'])
+            
+            
+            
         # start making decisions from today
         self.decision_making_day = pd.Timestamp.today().date()
 
@@ -81,7 +97,11 @@ class CovidModel():
         self.sim_start_day = self.pre_results['self.next_start_day']
 
         # number of days before decision making
-        self.pre_sim_days = abs(self.decision_making_day - self.sim_start_day).days
+        if self.decision_making_day >= self.sim_start_day:
+
+            self.pre_sim_days = abs(self.decision_making_day - self.sim_start_day).days
+        else:
+            self.pre_sim_days = 0
 
         # total simulation time period
         self.T_total = self.inv_dt * (gv.T_max + self.pre_sim_days)
@@ -401,6 +421,7 @@ decision = np.array([[1.1818e+02, 1.1818e+02, 9.3000e-01],
        [1.1818e+02, 1.1818e+02, 9.3000e-01],
        [1.1818e+02, 1.1818e+02, 9.3000e-01],
        [1.1818e+02, 1.1818e+02, 9.3000e-01],
+       [1.1818e+02, 1.1818e+02, 9.3000e-01],
        [1.3636e+02, 1.3636e+02, 8.6000e-01],
        [1.3636e+02, 1.3636e+02, 8.6000e-01],
        [1.3636e+02, 1.3636e+02, 8.6000e-01],
@@ -472,16 +493,15 @@ decision = np.array([[1.1818e+02, 1.1818e+02, 9.3000e-01],
        [3.0000e+02, 3.0000e+02, 2.5000e-01],
        [3.0000e+02, 3.0000e+02, 2.5000e-01]])
 
-inv_dt = 10
+inv_dt = 1
 
 # Funtion for one scenario analysis
 def main_run(State='NY', decision=decision, uw=50, costs=[50,50,50],
-             t_now=0, T_max=decision.shape[0]*inv_dt, data=None, heroku=False):
+             T_max=decision.shape[0]-1, data=None, 
+             pre_data = None, heroku=False, max_time=25):
     #decision = set_up_COVID_sim(State)
     # mod costs
     path = os.getcwd()
-    path = 'C:\\Users\\malla\\OneDrive\\Sandbox\\Full App\\base-app\\'#app\\'#COVID19master\\data\\COVID_input_parameters.xlsx'
-    print(path)
     state = State
     inv_dt = 10               # insert time steps within each day
     gv.setup_global_variables(state, inv_dt, path, heroku=False) 
@@ -489,55 +509,80 @@ def main_run(State='NY', decision=decision, uw=50, costs=[50,50,50],
     gv.test_cost = costs
     gv.T_max = T_max
     #sample_model = run_COVID_sim(decision, static='N', data=data)
-    timer, max_time, time_start = 0, 100, time.time()
+    timer, time_start = 0, time.time()
     model = CovidModel(data=data, heroku=heroku)
-    i = t_now
+    i = 0
     d_m = decision[i]
-    model.t = t_now
-    model.T_total = T_max
-    while model.t < model.T_total and timer < max_time:
+    print(model.T_total)
+    while model.t < model.T_total and (timer < max_time or i % model.inv_dt != 0):
         model.t += 1
-        print('t', model.t)
-        #print('tot_num_hosp', model.num_uni_test[model.t-1])
+        if model.t % 25 == 0: print('t', model.t, np.round(timer, 2))
         if i % model.inv_dt == 0:
             d_m = decision[i//model.inv_dt]
         model.step(action_t = d_m)
         i += 1
         timer = time.time() - time_start
-    dic = {'self.pop_dist_sim': model.pop_dist_sim[model.t-1].tolist(),
-           'self.num_diag': model.num_diag[model.t].tolist(),
-           'self.num_hosp': model.num_hosp[model.t].tolist(),
-           'self.num_dead': model.num_dead[model.t].tolist(),
-           #'self.num_new_inf': sample_model.num_new_inf[sample_model.t].tolist(),
-           'self.num_base_test': model.num_base_test[model.t].tolist(),
-           'self.num_uni_test': model.num_uni_test[model.t].tolist(),
-           'self.num_trac_test': model.num_trac_test[model.t].tolist(),
-           'self.tot_num_diag': model.tot_num_diag[model.t],
-           'self.tot_num_dead': model.tot_num_dead[model.t],
-           'self.tot_num_hosp': model.tot_num_hosp[model.t],
-           #'self.tot_num_new_inf': sample_model.tot_num_new_inf[sample_model.t],
-           'self.rate_unemploy': model.rate_unemploy[model.t],
-           'self.next_start_day': gv.begin_decision_date.strftime("%m/%d/%Y")}
-    df1, df2, df3, df4, df5 = op.output_var(sizeofrun =int(model.T_total/model.inv_dt),
-                           state = model.enter_state,
-                           start_d = model.sim_start_day,
-                           decision_d = model.decision_making_day).write_current_results()
-    output = {'VSL':df1,'Unemployment':df2,'Testing':df3,'Summary':df4,
-                'Decision Choice':df5}
-    print(output)
-    return dic, output
-    # df1 = model.op_ob.plot_decision_output_1()
-    # df2 = model.op_ob.plot_decision_output_2(gv.acutal_unemp)
-    # df3 = model.op_ob.plot_decision_output_3()
-    # df4 = model.op_ob.plot_cum_output(gv.actual_data)
-    # df5 = model.op_ob.plot_decison()
-    # # # sample_model.op_ob.plot_time_output()
-    # #return df1, df2
-    # output={'VSL':df1,'Unemployment':df2,'Testing':df3,'Summary':df4,
-    #             'Decision Choice':df5}
-    # return output, dic
-    #df_l = model.op_ob.write_output(gv.pre_results_df)
-    #model.op_ob.plot_results(df_l) # plotting for single run results
+    mod = model.t - model.d * model.inv_dt 
+    date_range = pd.date_range(start= model.sim_start_day, periods= model.d, freq = 'D')
+
+    # print(type(date_range[-1])
+    dic = {'self.pop_dist_sim': model.pop_dist_sim[model.t- mod].tolist(),
+           'self.num_diag': model.num_diag[model.t- mod].tolist(),
+           'self.num_hosp': model.num_hosp[model.t- mod].tolist(),
+           'self.num_dead': model.num_dead[model.t- mod].tolist(),
+           'self.num_base_test': model.num_base_test[model.t- mod].tolist(),
+           'self.num_uni_test': model.num_uni_test[model.t- mod].tolist(),
+           'self.num_trac_test': model.num_trac_test[model.t-mod].tolist(),
+           'self.tot_num_diag': model.tot_num_diag[model.t-mod],
+           'self.tot_num_dead': model.tot_num_dead[model.t-mod],
+           'self.tot_num_hosp': model.tot_num_hosp[model.t-mod],
+           'self.rate_unemploy': model.rate_unemploy[model.t-mod],
+           'self.next_start_day': date_range[-1].strftime("%m/%d/%Y"),
+           'self.t': model.t}
+
+    output = model.op_ob.write_output(pre_results = gv.pre_results_df, date_range = date_range, pre_data = pre_data)
+    remaining_decision = decision[i//model.inv_dt :]
+    is_complete = 'True' if model.T_total - model.t <= 2 else 'False'
+    results = {'pre_data':dic, 'to_java':output, 'remaining_decision':remaining_decision,
+               'is_complete':is_complete}
+    results = prep_results_for_java(results)
+    return results
+
+
+def prep_results_for_java(results):
+    results = copy.deepcopy(results)
+    results['is_complete'] = str(results['is_complete'])
+    if results['to_java'] == None:
+        results['to_java'] = json.dumps(results['to_java'])
+    else:
+        df1, df2, df3, df4, df5 = results['to_java']
+        temp = {'VSL':df1,'Unemployment':df2,'Testing':df3,'Summary':df4,'Decision Choice':df5}
+        temp['Summary']['Date'] = temp['Summary'].index.astype(str)
+        for k,v in temp.items():
+            temp[k].index = temp[k].index.astype(str)
+        results['to_java'] = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in temp.items()}
+    results['remaining_decision'] = json.dumps(results['remaining_decision'].tolist())
+    results['pre_data'] = json.dumps(results['pre_data'])
+    return results
+
+def prep_input_for_python(results):
+    results = copy.deepcopy(results)
+    for plan, instructions in results.items():
+        if plan in ['A', 'B', 'C']:
+            print(instructions['to_java'])
+            if instructions['to_java'] != 'null':
+                instructions['to_java'] = [pd.read_json(v).T for v in instructions['to_java'].values()]
+            else:
+                instructions['to_java'] = None
+            instructions['remaining_decision'] = np.array(json.loads(instructions['remaining_decision']))
+            instructions['pre_data'] = json.loads(instructions['pre_data'])
+            results[plan] = instructions
+    return results
+
+#         for k,v in output.items():
+#             output[k].index = output[k].index.astype(str)
+#         results[plan] = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in output.items()}
+
 
 # # Function to run COVID model simulation
 # # static - static decision choice

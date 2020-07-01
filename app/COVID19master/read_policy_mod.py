@@ -30,7 +30,7 @@ def read_ABC(from_java):
         for plan, array in policy.items():
             data[plan][name] = array
     plans = ['A', 'B', 'C']
-    policies = ['CT', 'UT', 'CR']
+    policies = ['CR', 'CT', 'UT']
     dates = data['Date']['CT'] # hard coded
     days_per_tp = 7
     index = [0] + [i for i in dates for j in range(days_per_tp)]

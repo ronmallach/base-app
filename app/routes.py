@@ -65,47 +65,41 @@ def download_newfile():
 @bp.route('/prep_sim', methods=('GET','POST'))
 def prep_sim():
     get = request.get_json() # retrieve input data from ajax request
-    print(get)
-    print(get)
-    rl_input = read_policy_mod.read_ABC(get)
-    state = get['state']
-    heroku = False
-    timer = time.time()
-    if len(os.getcwd()) < 25:
-        heroku = True
-    results = {}
-    tracker = {}
-    for plan, decision in rl_input.items(): 
-        results[plan] = ''
-        dic, output = COVID_model_colab.main_run(State='NY',
-                                                 decision=decision,
-                                                 uw=50,
-                                                 costs= [50, 50, 50],
-                                                 t_now=0,
-                                                 T_max=decision.shape[0]*10,
-                                                 data=None,
-                                                 heroku=heroku)
-        # covid_model = COVID_model.run_calibration(state='NY',
-        #                                           decision=decision,
-        #                                           heroku=heroku)
-        # output = COVID_model.run_simulation(covid_model,
-        #                                            state = "NY",
-        #                                            decision = decision,
-        #                                            heroku=heroku)
-        #output['Summary']['Date'] = output['Summary'].index.astype(str)
-        print(output)
-        tracker[plan] = {k : json.dumps(v) for k,v in dic.items()}
-        for k,v in output.items():
-            output[k].index = output[k].index.astype(str)
-        results[plan] = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in output.items()}
-    to_java = {}
-    to_java['results'] = results
-    to_java['dic'] = tracker
-    time_now = time.time()
-    # if time_now - timer < 10000:
-    #     to_java['finished'] = 'False'
-    #     to_java = {'finished':'False'}
-    return jsonify(status='success', data=to_java)
+    if get['new'] == 'True':
+        rl_input = read_policy_mod.read_ABC(get)
+        results = {plan:{'is_complete':'False',
+                         'remaining_decision':decision,
+                         'to_java':None,
+                         'pre_data':None} for plan, decision in rl_input.items()}
+    else:
+        results = COVID_model_colab.prep_input_for_python(get) # need to parse to get in python format    
+        print(results['A']['pre_data'].keys())
+        print(results['A']['pre_data']['self.next_start_day'])
+    heroku = False if len(os.getcwd()) > 25 else True
+    max_time=15
+    stop=False
+    for plan, instructions in results.items():
+        if type(instructions) == dict:
+            if instructions['is_complete'] == 'False' and stop == False:
+                decision = instructions['remaining_decision']
+                T_max = decision.shape[0]
+                data = instructions['to_java']
+                pre_data = instructions['pre_data']
+                output = COVID_model_colab.main_run(State='NY', decision=decision,
+                                                     uw=50, costs= [50, 50, 50], T_max=T_max,
+                                                     data=pre_data, pre_data=data,
+                                                     heroku=heroku, max_time=max_time)
+                stop = True
+                results[plan] = output
+            else:
+                results[plan] = COVID_model_colab.prep_results_for_java(results[plan])
+    if all([v['is_complete'] == 'True' for k,v in results.items() if type(v) == dict]):
+        status = 'Finished'
+    else:
+        status = 'Not Finished'
+    results['status'] = status
+    results['new'] = 'False'
+    return jsonify(status='success', data=results)
 
 # @bp.route('/prep_sim_old', methods=('GET','POST'))
 # def prep_sim_old():
