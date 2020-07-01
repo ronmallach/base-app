@@ -130,7 +130,7 @@ def read_pre_results(state, path, heroku=False):
         f1 = os.path.join(path,'app/COVID19master/data/results/{0}_sim_results.json'.format(state))
         f2 = os.path.join(path,'app/COVID19master/data/results/{0}_sim_results.xlsx'.format(state))
 
-    # f1 = pathlib.Path('data/results/{0}_sim_results.json'.format(state))
+    #f1 = pathlib.Path('data/results/{0}_sim_results.json'.format(state))
     json_file = open(f1,)
     data = json.load(json_file)
     new_dict = {}
@@ -143,7 +143,7 @@ def read_pre_results(state, path, heroku=False):
             new_dict[key] = value
     json_file.close()
 
-    # f2 =  pathlib.Path('data/results/{0}_sim_results.xlsx'.format(state))
+    #f2 =  pathlib.Path('data/results/{0}_sim_results.xlsx'.format(state))
     df = pd.ExcelFile(f2)
     return new_dict, df
 
@@ -151,9 +151,9 @@ def read_pre_results(state, path, heroku=False):
 # Function to read simulation related parameters
 def read_sim_inputs(state, path, heroku=False):
     # the Excel files need to read
-    # excel1= pathlib.Path('data/COVID_input_parameters.xlsx')
-    # excel2 = pathlib.Path('data/pop_dist.xlsx')
-    # excel3 = pathlib.Path('data/states_beta.xlsx')
+    #excel1= pathlib.Path('data/COVID_input_parameters.xlsx')
+    #excel2 = pathlib.Path('data/pop_dist.xlsx')
+    #excel3 = pathlib.Path('data/states_beta.xlsx')
 
     if heroku == False:
         excel1= os.path.join(path,'app\\COVID19master\\data\\COVID_input_parameters.xlsx')
@@ -206,8 +206,8 @@ def read_sim_inputs(state, path, heroku=False):
 # Function to read date related data
 def read_date(state, path, heroku=False):
     # the Excel files need to read
-    # excel1 = pathlib.Path('data/COVID_input_parameters.xlsx')
-    # excel2 = pathlib.Path('data/actual_valid_data.xlsx')
+    #excel1 = pathlib.Path('data/COVID_input_parameters.xlsx')
+    #excel2 = pathlib.Path('data/actual_valid_data.xlsx')
     if heroku == False:
         excel1 = os.path.join(path, 'app\\COVID19master\\data\\COVID_input_parameters.xlsx')
         excel2 = os.path.join(path,'app\\COVID19master\\data\\actual_valid_data.xlsx')

@@ -570,7 +570,6 @@ def prep_input_for_python(results):
     results = copy.deepcopy(results)
     for plan, instructions in results.items():
         if plan in ['A', 'B', 'C']:
-            print(instructions['to_java'])
             if instructions['to_java'] != 'null':
                 instructions['to_java'] = [pd.read_json(v).T for v in instructions['to_java'].values()]
             else:
