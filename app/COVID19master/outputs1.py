@@ -48,9 +48,9 @@ class output_var:
 
     # write results from current simulation to a new DataFrame
     def write_current_results(self, date_range = None):
-       
+
         self.date_range = date_range
-        length = self.date_range.shape[0] 
+        length = self.date_range.shape[0]
         df1 = pd.DataFrame({'Date': self.date_range,
                             'Value of statistical life-year (VSL) loss': self.VSL_plot[:length],
                             'Number of new deaths': self.num_dead_plot[:length]})
@@ -87,7 +87,7 @@ class output_var:
 
         return df1, df2, df3, df4, df5
 
-    
+
     # Function to combine previous simulation results and current simulation
     # results together to one single Excel file with categorized sheets
     def write_output(self, pre_results, date_range, pre_data = None):

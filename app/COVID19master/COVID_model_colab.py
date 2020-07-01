@@ -87,9 +87,9 @@ class CovidModel():
             self.pre_results['self.num_trac_test'] = np.array(self.pre_results['self.num_trac_test'])
             self.pre_results['self.num_uni_test'] = np.array(self.pre_results['self.num_uni_test'])
             self.pre_results['self.num_base_test'] = np.array(self.pre_results['self.num_base_test'])
-            
-            
-            
+
+
+
         # start making decisions from today
         self.decision_making_day = pd.Timestamp.today().date()
 
@@ -497,14 +497,14 @@ inv_dt = 1
 
 # Funtion for one scenario analysis
 def main_run(State='NY', decision=decision, uw=50, costs=[50,50,50],
-             T_max=decision.shape[0]-1, data=None, 
+             T_max=decision.shape[0]-1, data=None,
              pre_data = None, heroku=False, max_time=25):
     #decision = set_up_COVID_sim(State)
     # mod costs
     path = os.getcwd()
     state = State
     inv_dt = 10               # insert time steps within each day
-    gv.setup_global_variables(state, inv_dt, path, heroku=False) 
+    gv.setup_global_variables(state, inv_dt, path, heroku=False)
     gv.md_salary = uw
     gv.test_cost = costs
     gv.T_max = T_max
@@ -519,10 +519,11 @@ def main_run(State='NY', decision=decision, uw=50, costs=[50,50,50],
         if model.t % 25 == 0: print('t', model.t, np.round(timer, 2))
         if i % model.inv_dt == 0:
             d_m = decision[i//model.inv_dt]
+
         model.step(action_t = d_m)
         i += 1
         timer = time.time() - time_start
-    mod = model.t - model.d * model.inv_dt 
+    mod = model.t - model.d * model.inv_dt
     date_range = pd.date_range(start= model.sim_start_day, periods= model.d, freq = 'D')
 
     # print(type(date_range[-1])
@@ -769,6 +770,8 @@ def prep_input_for_python(results):
 #         main_run(State)
 
 # if  __name__ == "__main__":
+#     main_run()
+
 
 #     State = 'NY' # default is New York
 #     set_up_COVID_sim(State)   # initialize model
