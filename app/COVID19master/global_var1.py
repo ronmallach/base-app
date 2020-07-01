@@ -65,7 +65,7 @@ def setup_global_variables(state, inv_dt1, path, heroku=False):
     diag_indices = diag_indices_loc(Q)
 
     ###### read date related result ##########
-    date_result = read_date(state = enter_state, path=path, heroku=False)
+    date_result = read_date(state = enter_state, path=path, heroku=heroku)
     final_simul_start_date = date_result[0]
 
     global begin_decision_date
