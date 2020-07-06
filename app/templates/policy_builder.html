@@ -88,6 +88,9 @@
         <div class='w3-border w3-round w3-margin-top' style='height:30vh'>
           <p> Cost Parameters (per person)</p>
           <div>
+            <p class='w3-round'>Cost of Symptom-Based Testing:
+               <input id=costSB class='w3-round' type=number value=50></input>
+             </p>
             <p class='w3-round'>Cost of Contact Tracing:
                <input id=costCT class='w3-round' type=number value=50></input>
              </p>
@@ -298,47 +301,6 @@ makeEmptyTable("usertableCT", startVal=100, endVal=300)
 makeEmptyTable("usertableUT", startVal=100, endVal=300)
 savePolicies()
 
-function tableToJson(id, type='index') {
-  var table = document.getElementById(id)
-  var data = [];
-  // first row needs to be headers
-  var headers = [];
-  for (var i=0; i<table.rows[0].cells.length; i++) {
-      headers[i] = table.rows[0].cells[i].innerHTML.replace(/ /gi,'');
-  }
-  if (type == 'index'){
-    // go through cells
-  	start = 1
-    for (var i=start; i<table.rows.length; i++) {
-        var tableRow = table.rows[i];
-        var rowData = {};
-        for (var j=0; j<tableRow.cells.length ; j++) {
-            rowData[headers[j]] = tableRow.cells[j].innerHTML;
-        }
-        data.push(rowData);
-    }
-  }else{
-    // go through cells
-    for (var i=0; i<table.rows[0].cells.length; i++) {
-      var colData = [];
-      remember = parseFloat(0)
-      for (var j=1; j<table.rows.length ; j++) {
-        if (i==0){
-          colData.push(parseFloat(table.rows[j].cells[i].innerHTML.split(" ")[1]));
-        }else{
-          if (table.rows[j].cells[i].innerHTML != ''){
-            remember = table.rows[j].cells[i].innerHTML
-            colData.push(parseFloat(table.rows[j].cells[i].innerHTML));
-          } else {
-            colData.push(parseFloat(remember));
-          }
-      }}
-      data[headers[i]] = colData;
-    }
-  }
-  return data;
-}
-
 
 function graph_stateChoice(){
   var state = d3.select("#simState")._groups[0][0].value // get user pasted data
@@ -352,39 +314,12 @@ function graph_stateChoice(){
   })
 }
 
-function calibrate(){
-  savePolicies()
-  var state = d3.select("#simState")._groups[0][0].value // get user pasted data
-  to_python = [{'state':state, 'rl_input':tableToJson("usertable")}]
-  $.ajax({
-        type: "POST",
-        url: "calibrate_model", // url on python side
-        data: JSON.stringify(to_python),
-        contentType: "application/json",
-        success: function (dataset) {
-          all_data = dataset.data;
-          simSummary = to_object(all_data, 'Summary')
-          switchTab('simResultGraphs')
-          d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data){
-            makeCovidTrackerLine('resultGraphCases', 'infsim', covid_data,
-              scaleType='linear', state=state, dataType='positive',cumulative='cumulative',
-              simulation=simSummary, simDataType='projected cumulative diagnosis')
-            makeCovidTrackerLine('resultGraphHospital', 'hospsim', covid_data,
-              scaleType='linear', state=state, dataType='hospitalized', cumulative='cumulative',
-              simulation=simSummary, simDataType='projected cumulative hospitalized')
-            makeCovidTrackerLine('resultGraphDeath', 'deathsim', covid_data,
-              scaleType='linear', state=state, dataType='death', cumulative='cumulative',
-              simulation=simSummary, simDataType='projected cumulative deaths')
-          })
-        },
-  });
-}
-
 function data_for_sim(){
   var dataCR = tableToJson("usertableCR", 'column')
   var dataUT = tableToJson("usertableUT", 'column')
   var dataCT = tableToJson("usertableCT", 'column')
   console.log(dataCR)
+  costSB = d3.select("#costSB")._groups[0][0].value
   costCT = d3.select("#costCT")._groups[0][0].value
   costUT = d3.select("#costUT")._groups[0][0].value
   costUW = d3.select("#costUW")._groups[0][0].value
@@ -402,7 +337,7 @@ function data_for_sim(){
                                 'A':dataUT['PlanA'],
                                 'B':dataUT['PlanB'],
                                 'C':dataUT['PlanC'],},},
-               'cost':[costCT, costUT, costUT],
+               'cost':[costSB, costCT, costUT],
                'UW':costUW,
                'new':'True'}
   return to_python
@@ -412,7 +347,6 @@ function start_sim(to_python=null){
   if (to_python == null){
     to_python = data_for_sim()
   }
-  console.log(to_python)
   $.ajax({
         type: "POST",
         url: "prep_sim", // url on python side
@@ -420,14 +354,13 @@ function start_sim(to_python=null){
         contentType: "application/json",
         success: function (dataset) {
           all_data = dataset.data;
-          console.log(all_data)
-          console.log(all_data['status'])
           if (all_data['status'] == 'Not Finished'){
             console.log('back to it')
             start_sim(to_python=all_data)
           } else {
-            console.log(to_object(all_data['A']['to_java'], 'Summary'))
+            console.log(all_data)
             simSummary = to_object(all_data['A']['to_java'], 'Summary')
+            console.log(simSummary)
             switchTab(event, 'simResultGraphs')
             d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data){
               makeCovidTrackerLine('resultGraphCases', 'infsim', covid_data,
@@ -440,7 +373,6 @@ function start_sim(to_python=null){
                 scaleType='linear', state=state, dataType='death', cumulative='cumulative',
                 simulation=simSummary, simDataType='simulated cumulative deaths')
             })
-
           }
         },
   });

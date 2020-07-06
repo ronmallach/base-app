@@ -52,7 +52,6 @@ class CovidModel():
         self.A_val = gv.A_val                                     # coefficient for calculating unemployment rate
         self.duration_unemployment = gv.duration_unemployment     # duration from social distaning to reaching maximum of unemployment rate
         self.cost_tst = gv.test_cost                              # cost of testing per person ([0]: symptom-based,
-
                                                                   # [1]: contact tracing, [2]: universal testing)
         # read preliminary results
         if data == None:

@@ -29,7 +29,6 @@ function makeCovidTrackerLine(parentName, SVG_name, covid_data,
     dataType = dataType + 'Increase'
   }
 
-
   if (simulation == null){
     x = d3.scaleUtc()
           .domain(d3.extent(data, d => eightToDate(d.date)))

@@ -83,7 +83,7 @@ def main_run(state, decision, T_max, uw=50, costs=[50,50,50], data=None,
     is_complete = 'True' if model.T_total - model.t <= 2 else 'False'
     # ^ check if simulation is done
     results = {'pre_data':dic, 'to_java':output, 'remaining_decision':remaining_decision,
-               'is_complete':is_complete}
+               'is_complete':is_complete, 'cost':costs, 'unemp':uw}
     results = prep_results_for_java(results)
     # ^^ prep results for java
     return results
@@ -96,13 +96,15 @@ def prep_results_for_java(results):
         results['to_java'] = json.dumps(results['to_java'])
     else:
         df1, df2, df3, df4, df5 = results['to_java']
-        temp = {'VSL':df1,'Summary':df2,'Testing':df3,
-                'Decision Choice':df4, 'Unemployment':df5}
+        temp = {'VSL':df1,'Summary':df5,'Testing':df3,
+                'Decision Choice':df4, 'Unemployment':df2}
         temp['Summary']['Date'] = temp['Summary'].index.astype(str)
         for k,v in temp.items():
             temp[k].index = temp[k].index.astype(str)
         results['to_java'] = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in temp.items()}
     results['remaining_decision'] = json.dumps(results['remaining_decision'].tolist())
+    results['cost'] = json.dumps(results['cost'])
+    results['unemp'] = json.dumps(results['unemp'])
     results['pre_data'] = json.dumps(results['pre_data'])
     return results
 
@@ -116,5 +118,7 @@ def prep_input_for_python(results):
                 instructions['to_java'] = None
             instructions['remaining_decision'] = np.array(json.loads(instructions['remaining_decision']))
             instructions['pre_data'] = json.loads(instructions['pre_data'])
+            instructions['cost'] = json.loads(instructions['cost'])
+            instructions['unemp'] = json.loads(instructions['unemp'])
             results[plan] = instructions
     return results

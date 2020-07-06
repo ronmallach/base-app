@@ -36,12 +36,15 @@ def prep_sim():
     # if this is the first time the simulation is being run through, prep the
     # data from the front end... see line 91 where this is set as False.
     if get['new'] == 'True':
+        print([int(cost) for cost in get['cost']])
         rl_input = backend.read_ABC(get)
         # transform user inputs... will return 
         results = {plan:{'is_complete':'False',
                          'remaining_decision':decision,
                          'to_java':None,
-                         'pre_data':None} for plan, decision in rl_input.items()}
+                         'pre_data':None,
+                         'cost':[int(cost) for cost in get['cost']],
+                         'unemp':int(get['UW'])} for plan, decision in rl_input.items()}
     else:
     # else, if this is NOT the first time the prep_sim function is called,
     # take the partially completed simulation data and prep it.
@@ -57,11 +60,13 @@ def prep_sim():
                 T_max = decision.shape[0]
                 data = instructions['to_java']
                 pre_data = instructions['pre_data']
+                costs = instructions['cost']
+                uw = instructions['unemp']
                 # ^ make parameters
                 output = backend.main_run(state='NY', decision=decision,
-                                                     uw=50, costs= [50, 50, 50], T_max=T_max,
-                                                     data=pre_data, pre_data=data,
-                                                     heroku=heroku, max_time=max_time)
+                                          uw=uw, costs=costs, T_max=T_max,
+                                          data=pre_data, pre_data=data,
+                                          heroku=heroku, max_time=max_time)
                 # ^ run simulation... will end after 15 seconds, or if simulation
                 # of current plan is completed
                 stop = True # set stop conditions
