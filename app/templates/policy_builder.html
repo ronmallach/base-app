@@ -32,6 +32,7 @@
       <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'contactReductionTab')">Contact Reduction</button>
       <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'universalTestingTab')">Universal Testing</button>
       <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'contactTracingTab')">Contact Tracing</button>
+      <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'simResultGraphs')">Simulation Results</button>
     </div>
     <div id=contactReductionTab class='tabbed' style="display:none">
       <div class='w3-panel  w3-col s6'>
@@ -103,6 +104,13 @@
         <div class='w3-border w3-light-grey' id=inputGraphContactReduction2></div>
         <div class='w3-border w3-light-grey' id=inputGraphContactTracing2></div>
         <div class='w3-border w3-light-grey' id=inputGraphUniversalTracing2></div>
+      </div>
+    </div>
+    <div id='simResultGraphs' class='tabbed' style="display:none">
+      <div class='w3-col s12' style='height:60vh'>
+        <div class='w3-border w3-light-grey' id=resultGraphCases></div>
+        <div class='w3-border w3-light-grey' id=resultGraphHospital></div>
+        <div class='w3-border w3-light-grey' id=resultGraphDeath></div>
       </div>
     </div>
   </div>
@@ -419,6 +427,20 @@ function start_sim(to_python=null){
             start_sim(to_python=all_data)
           } else {
             console.log(to_object(all_data['A']['to_java'], 'Summary'))
+            simSummary = to_object(all_data['A']['to_java'], 'Summary')
+            switchTab(event, 'simResultGraphs')
+            d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data){
+              makeCovidTrackerLine('resultGraphCases', 'infsim', covid_data,
+                scaleType='linear', state=state, dataType='positive',cumulative='cumulative',
+                simulation=simSummary, simDataType='simulated cumulative diagnosis')
+              makeCovidTrackerLine('resultGraphHospital', 'hospsim', covid_data,
+                scaleType='linear', state=state, dataType='hospitalized', cumulative='cumulative',
+                simulation=simSummary, simDataType='simulated cumulative hospitalized')
+              makeCovidTrackerLine('resultGraphDeath', 'deathsim', covid_data,
+                scaleType='linear', state=state, dataType='death', cumulative='cumulative',
+                simulation=simSummary, simDataType='simulated cumulative deaths')
+            })
+
           }
         },
   });
