@@ -113,13 +113,25 @@ function makeSimLine(parentName, SVG_name, covid_data, state="New York",
                        .y(function(d) {return y(parseFloat(d[simDataType]))})
                        .x(function(d) {return x(parseInt(d.Date))})
 
-       svg.append("path")
+       const pathA = svg.append("path")
          .datum(simA)
          .attr('class', 'line')
          .attr("fill", "none")
          .attr("stroke", "steelblue")
          .attr("stroke-width", 1.5)
          .attr("d", d => drawSimLine(d))
+
+        const pathLength = pathA.node().getTotalLength();
+       // D3 provides lots of transition options, have a play around here:
+       // https://github.com/d3/d3-transition
+       const transitionPath = d3
+         .transition()
+         .ease(d3.easeSin)
+         .duration(10000);
+       pathA.attr("stroke-dashoffset", pathLength)
+         .attr("stroke-dasharray", pathLength)
+         .transition(transitionPath)
+         .attr("stroke-dashoffset", 0);
      }
      if (simB !== null){
        //drawSimLine = d3.line()
@@ -129,13 +141,25 @@ function makeSimLine(parentName, SVG_name, covid_data, state="New York",
                        .y(function(d) {return y(parseFloat(d[simDataType]))})
                        .x(function(d) {return x(parseInt(d.Date))})
 
-       svg.append("path")
+       const pathB = svg.append("path")
          .datum(simB)
          .attr('class', 'line')
          .attr("fill", "none")
          .attr("stroke", "red")
          .attr("stroke-width", 1.5)
          .attr("d", d => drawSimLine(d))
+
+         const pathLength = pathB.node().getTotalLength();
+          // D3 provides lots of transition options, have a play around here:
+          // https://github.com/d3/d3-transition
+          const transitionPath = d3
+            .transition()
+            .ease(d3.easeSin)
+            .duration(10000);
+          pathB.attr("stroke-dashoffset", pathLength)
+            .attr("stroke-dasharray", pathLength)
+            .transition(transitionPath)
+            .attr("stroke-dashoffset", 0);
      }
      if (simC !== null){
        //drawSimLine = d3.line()
@@ -145,13 +169,25 @@ function makeSimLine(parentName, SVG_name, covid_data, state="New York",
                        .y(function(d) {return y(parseFloat(d[simDataType]))})
                        .x(function(d) {return x(parseInt(d.Date))})
 
-       svg.append("path")
+       const pathC = svg.append("path")
          .datum(simC)
          .attr('class', 'line')
          .attr("fill", "none")
          .attr("stroke", "green")
          .attr("stroke-width", 1.5)
          .attr("d", d => drawSimLine(d))
+
+         const pathLength = pathC.node().getTotalLength();
+        // D3 provides lots of transition options, have a play around here:
+        // https://github.com/d3/d3-transition
+        const transitionPath = d3
+          .transition()
+          .ease(d3.easeSin)
+          .duration(10000);
+        pathC.attr("stroke-dashoffset", pathLength)
+          .attr("stroke-dasharray", pathLength)
+          .transition(transitionPath)
+          .attr("stroke-dashoffset", 0);
      }
   // add the title
   svg.append("text")
