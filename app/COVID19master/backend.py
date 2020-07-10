@@ -113,7 +113,11 @@ def prep_input_for_python(results):
     for plan, instructions in results.items():
         if plan in ['A', 'B', 'C']:
             if instructions['to_java'] != 'null':
-                instructions['to_java'] = [pd.read_json(v).T for v in instructions['to_java'].values()]
+                instructions['to_java'] = [pd.read_json(instructions['to_java']['VSL']).T ,
+                                           pd.read_json(instructions['to_java']['Unemployment']).T ,
+                                           pd.read_json(instructions['to_java']['Testing']).T ,
+                                           pd.read_json(instructions['to_java']['Decision Choice']).T ,
+                                           pd.read_json(instructions['to_java']['Summary']).T ]
             else:
                 instructions['to_java'] = None
             instructions['remaining_decision'] = np.array(json.loads(instructions['remaining_decision']))

@@ -112,20 +112,6 @@ class output_var:
         df4 = df4.append(df4_c, ignore_index=True)
         df5 = df5.append(df5_c, ignore_index=True)
 
-        # actual_data = pre_results.parse(sheet_name ='Actual epidemic data', index_col = 0)
-        # actual_unemp = pre_results.parse(sheet_name ='Actual unemployment rate', index_col = 0)
-
-        # write to a new file
-        # writer = pd.ExcelWriter('{0}_final_result.xlsx'.format(self.State), engine = 'xlsxwriter')
-
-        # df1.to_excel(writer, sheet_name = 'VSL')
-        # df2.to_excel(writer, sheet_name = 'Unemployment')
-        # df3.to_excel(writer, sheet_name = 'Testing')
-        # df4.to_excel(writer, sheet_name = 'Decision choice')
-        # df5.to_excel(writer, sheet_name = 'Summary')
-
-        # writer.save()
-        # return df1, df2, df3, df4, df5, actual_data, actual_unemp
         return df1, df2, df3, df4, df5
 
 
