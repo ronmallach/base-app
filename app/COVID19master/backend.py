@@ -44,7 +44,6 @@ def main_run(state, decision, T_max, uw = 1, costs=[50,50,50], data=None,
     decision_making_date = pd.Timestamp(2020, 8,24)      # date of starting decision making
     final_simul_start_date = pd.Timestamp(2020, 11,20)   # date of last simulation date
     sim_week = final_simul_start_date.week - decision_making_date.week + 1
-
     gv.setup_global_variables(state, inv_dt, init_num_inf, decision_making_date.date(),
                               travel_num_inf, test_sensitivity, sim_week, unif,
                               final_simul_start_date.date(), path, heroku=heroku)
@@ -54,7 +53,6 @@ def main_run(state, decision, T_max, uw = 1, costs=[50,50,50], data=None,
     gv.total_pop, gv.pop_dist_v = gv.read_pop_dist(state, uw, path = path, heroku = False)
     # gv.T_max = T_max
     gv.T_max = abs((decision_making_date.date() - final_simul_start_date.date()).days)
-    print('TMAX', gv.T_max)
     # ^ set gloable variables
     timer, time_start = 0, time.time() # set timer and current time
     model = cov.CovidModel(data=data, heroku=heroku) # establish model
@@ -73,10 +71,7 @@ def main_run(state, decision, T_max, uw = 1, costs=[50,50,50], data=None,
         i += 1  # move time
         timer = time.time() - time_start # update timer
     mod = model.t - model.d * model.inv_dt
-    print('T', model.t)
-    print('D', model.d)
-    print('inv_dt', model.inv_dt)
-    print('MOD', mod)
+
     mod = 0
     date_range = pd.date_range(start= model.sim_start_day, periods= model.d, freq = 'D')
     # ^^ FROM XINMENG ... idk what this means
@@ -107,32 +102,29 @@ def main_run(state, decision, T_max, uw = 1, costs=[50,50,50], data=None,
     #            'is_complete':is_complete, 'cost':costs, 'unemp':uw}
     results = {'pre_data':dic, 'to_java':output, 'remaining_decision':remaining_decision,
                'is_complete':is_complete, 'cost':costs, 'prop': uw}
-    results = prep_results_for_java(results)
+    results = prep_results_for_java(results, pre_data)
     # ^^ prep results for java
     return results
 
 
-def prep_results_for_java(results):
+def prep_results_for_java(results, prior_results=None):
     results = copy.deepcopy(results)
     results['is_complete'] = str(results['is_complete'])
     if results['to_java'] == None:
         results['to_java'] = json.dumps(results['to_java'])
-    # else:
-    #     df1, df2, df3, df4, df5 = results['to_java']
-    #     temp = {'VSL':df1,'Summary':df5,'Testing':df3,
-    #             'Decision Choice':df4, 'Unemployment':df2}
-    #     temp['Summary']['Date'] = temp['Summary'].index.astype(str)
-    #     for k,v in temp.items():
-    #         temp[k].index = temp[k].index.astype(str)
-    #     results['to_java'] = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in temp.items()}
-    # results['remaining_decision'] = json.dumps(results['remaining_decision'].tolist())
-    # results['cost'] = json.dumps(results['cost'])
-    # results['unemp'] = json.dumps(results['unemp'])
-    # results['pre_data'] = json.dumps(results['pre_data'])
     else:
         df1, df3, df4, df5 = results['to_java']
-        temp = {'VSL':df1,'Summary':df5,'Testing':df3,
-                'Decision Choice':df4}
+        if prior_results != None:
+            old1, old3, old4, old5 = prior_results
+            temp = {'VSL':old1.append(df1, ignore_index=True),
+                    'Summary':old5.append(df5, ignore_index=True),
+                    'Testing':old3.append(df3, ignore_index=True),
+                    'Decision Choice':old4.append(df4, ignore_index=True)}
+        else:
+            temp = {'VSL':df1,
+                    'Summary':df5,
+                    'Testing':df3,
+                    'Decision Choice':df4}                
         temp['Summary']['Date'] = temp['Summary'].index.astype(str)
         for k,v in temp.items():
             temp[k].index = temp[k].index.astype(str)

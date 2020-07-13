@@ -13,7 +13,7 @@ from math import ceil, floor
 # import ImageMerge as im
 
 from app.COVID19master import global_var as gv
-from app.COVID19master import outputs as op
+from app.COVID19master import outputs1 as op
 
 class CovidModel():
     # def __init__(self):
@@ -38,7 +38,6 @@ class CovidModel():
         self.percent_dead_recover_days = gv.percent_dead_recover_days_v
         self.init_pop_dist = gv.pop_dist_v                                 # initial population distribution
         self.tot_pop = gv.total_pop                                        # total number of population by State/ University
-
         self.input_list_const = gv.input_list_const_v                      # input parameters for reading the below parameters
         self.l_days =  self.input_list_const.loc['Days_L', 'value']        # latent period duration
         self.prop_asymp = self.input_list_const.loc['Prop_Asymp', 'value'] # proportion of cases that never show symptoms
@@ -223,8 +222,6 @@ class CovidModel():
     def new_inf_to_pop(self):
         # determine number of infected people back to area after traveling
         self.determine_num_inf_travel()
-        print('t',self.t)
-        print('d',self.d)
         if self.travel_num_inf[self.t] <= 0:
             pass
         else:

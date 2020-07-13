@@ -317,7 +317,7 @@ function updateOverview(){
   dataUT_A = tableToJson("usertableUT", 'column')['PlanA'].reduce(function(a,b){return a + b;}, 0);
   dataUT_B = tableToJson("usertableUT", 'column')['PlanB'].reduce(function(a,b){return a + b;}, 0);
   dataUT_C = tableToJson("usertableUT", 'column')['PlanC'].reduce(function(a,b){return a + b;}, 0);
-  if (dataCR_A > 0){document.getElementById('crA').innerHTML = '&#10004;'}
+  if (dataCR_A > 0){document.getElementById('crA').innerHTML = '&#10004;'}else{document.getElementById('crA').innerHTML = ''}
   if (dataCR_B > 0){document.getElementById('crB').innerHTML = '&#10004;'}
   if (dataCR_C > 0){document.getElementById('crC').innerHTML = '&#10004;'}
   if (dataCT_A > 0){document.getElementById('ctA').innerHTML = '&#10004;'}

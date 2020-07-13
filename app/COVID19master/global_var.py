@@ -126,7 +126,7 @@ def setup_global_variables(state, inv_dt1, num_inf1, decision_making_date,
 
     global pop_dist_v
     global total_pop
-    # total_pop, pop_dist_v = read_pop_dist(state, prop1, path = path, heroku = False)
+    total_pop, pop_dist_v = read_pop_dist(state, prop=1, path = path, heroku = False)
 
     global day_decison_making
     day_decison_making = decision_making_date

@@ -9,18 +9,15 @@ import os
 bp = Blueprint('blueprint', __name__)
 
 
+# @bp.route('/', methods=('GET', 'POST'))
+# def index():
+#     return render_template('index.html')
+
 @bp.route('/', methods=('GET', 'POST'))
 def index():
-    return render_template('index.html')
-
-@bp.route('/input', methods=('GET', 'POST'))
-def render_input():
     #return render_template('input.html')
     return render_template('policy_builder.html')
 
-@bp.route('/simResult', methods=('GET', 'POST'))
-def render_result():
-    return render_template('simResult.html')
 
 @bp.route('/input/download_newfile')
 def download_newfile():
@@ -42,7 +39,6 @@ def prep_sim():
                          'to_java':None,
                          'pre_data':None,
                          'cost':[int(cost) for cost in get['cost']],
-                        #  'unemp':int(get['UW'])} for plan, decision in rl_input.items()}
                          'prop':int(get['UW'])} for plan, decision in rl_input.items()}
     else:
     # else, if this is NOT the first time the prep_sim function is called,
@@ -60,11 +56,10 @@ def prep_sim():
                 data = instructions['to_java']
                 pre_data = instructions['pre_data']
                 costs = instructions['cost']
-                #uw = instructions['unemp']
                 uw = instructions['prop']
                 # ^ make parameters
                 output = backend.main_run(state='UMASS', decision=decision,
-                                          uw=uw, costs=costs, T_max=T_max,
+                                          uw=1, costs=costs, T_max=T_max,
                                           data=pre_data, pre_data=data,
                                           heroku=heroku, max_time=max_time)
                 # ^ run simulation... will end after 15 seconds, or if simulation
