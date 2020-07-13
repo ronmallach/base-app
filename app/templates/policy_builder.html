@@ -428,6 +428,7 @@ function start_sim(to_python=null){
   if (to_python == null){
     to_python = data_for_sim()
   }
+  console.log('made it this far')
   $.ajax({
         type: "POST",
         url: "prep_sim", // url on python side

@@ -33,7 +33,7 @@ def setup_global_variables(state, inv_dt1, num_inf1, decision_making_date,
     ##### user defined input #######
 
     ##### read simulation input #######
-    sim_result = read_sim_inputs(state = enter_state, path = path, heroku = False)
+    sim_result = read_sim_inputs(state = enter_state, path = path, heroku = heroku)
     global symp_hospitalization_v
     symp_hospitalization_v = sim_result[0]
 
@@ -126,7 +126,7 @@ def setup_global_variables(state, inv_dt1, num_inf1, decision_making_date,
 
     global pop_dist_v
     global total_pop
-    total_pop, pop_dist_v = read_pop_dist(state, prop=1, path = path, heroku = False)
+    total_pop, pop_dist_v = read_pop_dist(state, prop=1, path = path, heroku = heroku)
 
     global day_decison_making
     day_decison_making = decision_making_date
@@ -181,6 +181,8 @@ def setup_global_variables(state, inv_dt1, num_inf1, decision_making_date,
 # Function to read population distribution by State /university
 # Distribute age to a certain propotion of the total population
 def read_pop_dist(state, prop, path, heroku = False):
+    print(path)
+    print(heroku)
     # excel = pathlib.Path('data/age_dist_univ.xlsx')
     if heroku == False:
         excel =  os.path.join(path,'app\\COVID19master\\data\\age_dist_univ.xlsx')
