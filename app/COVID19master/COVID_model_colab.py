@@ -1,14 +1,23 @@
 import numpy as np
 import pandas as pd
+from math import isnan
+from datetime import timedelta
 import datetime as dt
-import time, os, json, copy
+import random, time, os, json, copy
+from math import ceil, floor
+
+# import global_var as gv
+# import outputs as op
+# import read_policy as rp
+# import scenario_analysis_plot as sp
+# import ImageMerge as im
 
 from app.COVID19master import global_var as gv
 from app.COVID19master import outputs as op
 
-
 class CovidModel():
-    def __init__(self, data=None, heroku=False):
+    # def __init__(self):
+    def __init__(self, data = None, heroku = False):
         self.beta_max = gv.beta_before_sd  # max transmission rate (normal pre-COVID 19)
         self.beta_min = gv.beta_after_sd   # min transmission rate ()
 
@@ -28,8 +37,7 @@ class CovidModel():
         self.symp_hospitalization = gv.symp_hospitalization_v
         self.percent_dead_recover_days = gv.percent_dead_recover_days_v
         self.init_pop_dist = gv.pop_dist_v                                 # initial population distribution
-        self.tot_pop = np.sum(self.init_pop_dist)                          # total number of population by State
-
+        self.tot_pop = gv.total_pop                                        # total number of population by State/ University
 
         self.input_list_const = gv.input_list_const_v                      # input parameters for reading the below parameters
         self.l_days =  self.input_list_const.loc['Days_L', 'value']        # latent period duration
@@ -40,22 +48,35 @@ class CovidModel():
         self.qih_days = self.input_list_const.loc['Days_QiH', 'value']     # time from onset of symptoms to hospitalization
         self.qir_days = self.input_list_const.loc['Days_QiR', 'value']     # time from diagnosis to recovery
         self.second_attack_rate = self.input_list_const.loc['Second_attack', 'value']/100   # second attack rate
+        # self.second_attack_rate = gv.SAR                                   # second attack rate
+        self.transmission_prob = self.input_list_const.loc['Trans_prob', 'value']
         self.hosp_scale = gv.hosp_scale                                    # hospitalization scale factor
         self.dead_scale = gv.dead_scale                                    # death scale factor
 
 
         # rl related parameters; won't change during the simulation
-        self.lab_for = gv.lab_for                                 # labor force participation rate
-        self.VSL = gv.VSL                                         # value of statistical life by age (1-101)
-        self.md_salary = gv.md_salary                             # median salary per time step
-        self.K_val = gv.K_val                                     # coefficient for calculating unemployment rate
-        self.A_val = gv.A_val                                     # coefficient for calculating unemployment rate
-        self.duration_unemployment = gv.duration_unemployment     # duration from social distaning to reaching maximum of unemployment rate
-        self.cost_tst = gv.test_cost                              # cost of testing per person ([0]: symptom-based,
-                                                                  # [1]: contact tracing, [2]: universal testing)
-        # read preliminary results
+        self.VSL = gv.VSL                                           # value of statistical life by age (1-101)
+        self.cost_tst = gv.test_cost                                # cost of testing per person ([0]: symptom-based,
+                                                                    # [1]: contact tracing, [2]: universal testing)
+        self.test_sensitivity = gv.test_sensitivity                                 # testing sensitivity
+        self.travel_num_inf_per_day = gv.travel_num_inf             # number of travel related infection per day
+        self.sim_week  = gv.sim_week                                # total simulation week
+        self.final_simul_end_date = gv.final_simul_start_date         # final simulation end date
+        self.unif = gv.unif                                         # whether uniformly distribute travel related infection
+        self.init_num_inf = gv.init_num_inf                         # intial number of infected
+
+        # self.decision_making_day = pd.Timestamp.today().date()
+
         if data == None:
-            self.pre_results = gv.pre_results_dict
+            self.pre_results = 0
+            self.decision_making_day = gv.day_decison_making
+            self.sim_start_day = self.decision_making_day - timedelta(days = 1)
+            self.T_total = self.inv_dt * gv.T_max
+            # initialize observation
+            self.op_ob = op.output_var(sizeofrun =int(self.T_total/self.inv_dt) + 1, state = self.enter_state,\
+                                   start_d = self.sim_start_day, decision_d = self.decision_making_day)
+            # initialize simulation
+            self.init_sim()
         else:
             self.pre_results = data
             if type(self.pre_results['self.next_start_day']) == str:
@@ -70,29 +91,15 @@ class CovidModel():
             self.pre_results['self.num_uni_test'] = np.array(self.pre_results['self.num_uni_test'])
             self.pre_results['self.num_base_test'] = np.array(self.pre_results['self.num_base_test'])
 
+            self.decision_making_day = gv.day_decison_making
+            self.sim_start_day = self.pre_results['self.next_start_day']
+            self.T_total = self.inv_dt * ((self.final_simul_end_date - self.sim_start_day).days + 1)
 
-
-        # start making decisions from today
-        self.decision_making_day = pd.Timestamp.today().date()
-
-        # the end of day from preliminatry simulation
-        self.sim_start_day = self.pre_results['self.next_start_day']
-
-        # number of days before decision making
-        if self.decision_making_day >= self.sim_start_day:
-
-            self.pre_sim_days = abs(self.decision_making_day - self.sim_start_day).days
-        else:
-            self.pre_sim_days = 0
-
-        # total simulation time period
-        self.T_total = self.inv_dt * (gv.T_max + self.pre_sim_days)
-
-        # initialize observation
-        self.op_ob = op.output_var(sizeofrun =int(self.T_total/self.inv_dt), state = self.enter_state,
+            # initialize observation
+            self.op_ob = op.output_var(sizeofrun =int(self.T_total/self.inv_dt) + 1, state = self.enter_state,\
                                    start_d = self.sim_start_day, decision_d = self.decision_making_day)
-        # initialize simulation
-        self.init_sim()
+            # initialize simulation
+            self.init_sim_mod()
 
     # Function to simulate compartment transition, calculate immediate reward function and output result
     # Input parameter:
@@ -116,58 +123,85 @@ class CovidModel():
             indx_l = self.t - self.inv_dt + 1 # = self.t
             indx_u = self.t + 1  # = self.t + 1
 
-            self.op_ob.num_inf_plot[self.d] = np.sum(self.num_diag[indx_l: indx_u])          # new infected for the day
+            self.op_ob.num_inf_plot[self.d] = np.sum(self.num_diag[indx_l: indx_u])          # new diagnosis for the day
+
             self.op_ob.num_hosp_plot[self.d] = np.sum(self.num_hosp[indx_l: indx_u])         # new hospitablization for the day
             self.op_ob.num_dead_plot[self.d] = np.sum(self.num_dead[indx_l: indx_u])         # new death for the day
+            self.op_ob.num_new_inf_plot[self.d] = np.sum(self.num_new_inf[indx_l: indx_u])   # new infection for the day
             self.op_ob.cumulative_inf[self.d] =  self.tot_num_diag[self.t]                   # cumulative infections from start of simulation to the day
             self.op_ob.cumulative_hosp[self.d] = self.tot_num_hosp[self.t]                   # cumulative hospitalizations from start of simulation to the day
             self.op_ob.cumulative_dead[self.d] = self.tot_num_dead[self.t]                   # cumulative dead from start of simulation to the day
-
+            self.op_ob.cumulative_new_inf_plot[self.d] =  self.tot_num_new_inf[self.t]       # cumulative newly infection from start of simulation to the day
             self.op_ob.num_base[self.d] = np.sum(self.num_base_test[indx_l: indx_u])         # number of symptom based testing for the day
             self.op_ob.num_uni[self.d] = np.sum(self.num_uni_test[indx_l: indx_u])           # number of universal testing for the day
             self.op_ob.num_trac[self.d] = np.sum(self.num_trac_test[indx_l: indx_u])         # number of contact tracing based testing for the day
 
-            self.op_ob.VSL_plot[self.d] =  (np.sum(self.Final_VSL[indx_l: indx_u]))          # VSL at timestep t
-            self.op_ob.SAL_plot[self.d] =  (np.sum(self.Final_SAL[indx_l: indx_u]))          # SAL at timestep t
-            self.op_ob.unemployment[self.d] = self.rate_unemploy[self.t]                     # unemployment rate at time step t
-            self.op_ob.univ_test_cost[self.d] =  (np.sum(self.cost_test_u[indx_l: indx_u]))  # cost of universal testing for the day
-            self.op_ob.trac_test_cost[self.d] =  (np.sum(self.cost_test_c[indx_l: indx_u]))  # cost of contact tracing for the day
-            self.op_ob.bse_test_cost[self.d] =  (np.sum(self.cost_test_b[indx_l: indx_u]))   # symptom based testing for the day
+            self.op_ob.VSL_plot[self.d] =  np.sum(self.Final_VSL[indx_l: indx_u])            # VSL at timestep t
+            self.op_ob.univ_test_cost[self.d] =  np.sum(self.cost_test_u[indx_l: indx_u])    # cost of universal testing for the day
+            self.op_ob.trac_test_cost[self.d] =  np.sum(self.cost_test_c[indx_l: indx_u])    # cost of contact tracing for the day
+            self.op_ob.bse_test_cost[self.d] =  np.sum(self.cost_test_b[indx_l: indx_u])     # symptom based testing for the day
 
             self.op_ob.num_diag_inf[self.d] = self.num_diag_inf[self.t]                      # Q_L + Q_E + Q_I
             self.op_ob.num_undiag_inf[self.d] = self.num_undiag_inf[self.t]                  # L + E + I
             self.op_ob.policy_plot[self.d] = self.policy[self.t]                             # policy
 
-            # plot for analysis
-            self.op_ob.T_c_plot[self.d] = self.T_c                                           # Plot number of contact tracing
-            self.op_ob.tot_test_cost_plot[self.d] = self.op_ob.univ_test_cost[self.d] + \
-                                                    self.op_ob.trac_test_cost[self.d] + \
-                                                    self.op_ob.bse_test_cost[self.d]
+            self.op_ob.T_c_plot[self.d] = self.T_c                                            # number of contact tracing needed
+            self.op_ob.T_u_plot[self.d] = self.T_u                                            # number of universal testing needed
+            self.op_ob.tot_test_cost_plot[self.d] = np.sum(self.Final_TST[indx_l: indx_u])    # total cost of testing
+
+            # number of hospitalization and deaths among each age group
+            self.op_ob.tot_hosp_AgeGroup1_plot[self.d] = np.sum(self.tot_hosp_AgeGroup1[indx_l: indx_u])
+            self.op_ob.tot_hosp_AgeGroup2_plot[self.d] = np.sum(self.tot_hosp_AgeGroup2[indx_l: indx_u])
+            self.op_ob.tot_hosp_AgeGroup3_plot[self.d] = np.sum(self.tot_hosp_AgeGroup3[indx_l: indx_u])
+            self.op_ob.tot_hosp_AgeGroup4_plot[self.d] = np.sum(self.tot_hosp_AgeGroup4[indx_l: indx_u])
+            self.op_ob.tot_hosp_AgeGroup5_plot[self.d] = np.sum(self.tot_hosp_AgeGroup5[indx_l: indx_u])
+            self.op_ob.tot_hosp_AgeGroup6_plot[self.d] = np.sum(self.tot_hosp_AgeGroup6[indx_l: indx_u])
+            self.op_ob.tot_hosp_AgeGroup7_plot[self.d] = np.sum(self.tot_hosp_AgeGroup7[indx_l: indx_u])
+            self.op_ob.tot_hosp_AgeGroup8_plot[self.d] = np.sum(self.tot_hosp_AgeGroup8[indx_l: indx_u])
+            self.op_ob.tot_dead_AgeGroup1_plot[self.d] = np.sum(self.tot_dead_AgeGroup1[indx_l: indx_u])
+            self.op_ob.tot_dead_AgeGroup2_plot[self.d] = np.sum(self.tot_dead_AgeGroup2[indx_l: indx_u])
+            self.op_ob.tot_dead_AgeGroup3_plot[self.d] = np.sum(self.tot_dead_AgeGroup3[indx_l: indx_u])
+            self.op_ob.tot_dead_AgeGroup4_plot[self.d] = np.sum(self.tot_dead_AgeGroup4[indx_l: indx_u])
+            self.op_ob.tot_dead_AgeGroup5_plot[self.d] = np.sum(self.tot_dead_AgeGroup5[indx_l: indx_u])
+            self.op_ob.tot_dead_AgeGroup6_plot[self.d] = np.sum(self.tot_dead_AgeGroup6[indx_l: indx_u])
+            self.op_ob.tot_dead_AgeGroup7_plot[self.d] = np.sum(self.tot_dead_AgeGroup7[indx_l: indx_u])
+            self.op_ob.tot_dead_AgeGroup8_plot[self.d] = np.sum(self.tot_dead_AgeGroup8[indx_l: indx_u])
+
+            self.op_ob.travel_num_inf_plot[self.d] = np.sum(self.travel_num_inf[indx_l: indx_u])
+
+            # number of quarantined equals to every 14 day interval of diagnosis
+            if self.d <= 13:
+                self.op_ob.num_quarantined_plot[self.d] = np.sum(self.op_ob.num_inf_plot[:self.d + 1])
+            else:
+                self.op_ob.num_quarantined_plot[self.d] = np.sum(self.op_ob.num_inf_plot[(self.d -13) : (self.d + 1)])
 
             self.d += 1 # update day
-
-            # gv.prog_bar.next()
 
     # Function to convert action
     # Input parameter:
     # action_t = a NumPy array of size [1x3] with the values output by the RL model (a_sd, a_c, a_u)
     def set_action_mod(self, action_t):
         self.a_sd = action_t[0]
-        self.a_c = action_t[1]
-        self.a_u = action_t[2]
+        if(self.tot_num_diag[self.t-1] >= 20):
+            self.a_c = action_t[1]
+        else:
+            self.a_c = 0
+        self.a_u = action_t[2] * self.test_sensitivity
+        # self.a_u = action_t[2]
         self.T_u = self.a_u * np.sum(self.pop_dist_sim[(self.t - 1),:,:,0:4])
-        self.T_c = self.a_c * ((1 - self.a_u) * np.sum(self.pop_dist_sim[(self.t - 1),:,:,1:4])) / self.second_attack_rate
+        self.T_c = self.a_c * ((1 - self.a_u) * np.sum(self.pop_dist_sim[(self.t - 1),:,:,1:4])) / self.second_attack_rate / self.test_sensitivity
+        # self.T_c = self.a_c * ((1 - self.a_u) * np.sum(self.pop_dist_sim[(self.t - 1),:,:,1:4])) / self.second_attack_rate
 
 
     # Function to convert action
     # Input parameter:
     # action_t = a NumPy array of size [1x3] with the values output by the RL model (a_sd, T_c, T_u)
     def set_action(self, action_t):
-        self.a_sd = action_t[0]
+        self.a_sd = action_t[0] * self.transmission_prob
         self.T_c = action_t[1]
         self.T_u = action_t[2]
         self.a_u = self.T_u / np.sum(self.pop_dist_sim[(self.t - 1),:,:,0:4])
-        self.a_c = min(1, (self.T_c * self.second_attack_rate)/((1 - self.a_u) * np.sum(self.pop_dist_sim[(self.t - 1),:,:,1:4])))
+        self.a_c = min(1, (self.T_c * self.test_sensitivity * self.second_attack_rate)/((1 - self.a_u) * np.sum(self.pop_dist_sim[(self.t - 1),:,:,1:4])))
 
     # Function to calculate immediate reward /cost
     # Input parameter:
@@ -175,56 +209,101 @@ class CovidModel():
     def calc_imm_reward(self):
         million = 1000000 # one million dollars
 
-        self.calc_unemployment()
-
-        tot_alive = self.tot_pop - self.tot_num_dead[self.t - 1]   # total number of alive people at time step (t - 1)
-
-        # number of unemployed = total alive people at time step (t - 1) x labor force participation rate /100
-        #                        x unemployment rate
-        num_unemploy = tot_alive * self.rate_unemploy[self.t - 1] * self.lab_for  # rate converted to percentage
-
-        # calculate total wage loss due to contact reducation  = number of unemployed x median wage / 1 million
-        self.Final_SAL[self.t] = num_unemploy * self.md_salary * self.dt / million
-
         # calculate total 'value of statistical life' loss due to deaths = number of newly dead x VSL (by age)
         num_dead = np.sum(self.num_dead[self.t - 1], axis = 0)
         self.Final_VSL[self.t]  = np.sum(np.dot(num_dead , self.VSL))
 
         # calculate cost of testing
         self.cost_test_b[self.t] =  self.cost_tst[0] * np.sum(self.num_base_test[self.t]) /million
-        self.cost_test_c[self.t] =  self.dt * self.cost_tst[1] * self.a_c * (1 - self.a_u) * np.sum(self.pop_dist_sim[(self.t - 1),:,:,1:4]) /(self.second_attack_rate * million)
+        self.cost_test_c[self.t] =  self.dt * self.cost_tst[1] * self.T_c /million
         self.cost_test_u[self.t] =  self.dt * self.cost_tst[2] * self.T_u / million
         self.Final_TST[self.t] = self.cost_test_u[self.t] + self.cost_test_c[self.t] + self.cost_test_b[self.t]
 
-        # calculate immeidate reward
-        self.imm_reward[self.t] = -1 * (self.Final_VSL[self.t]  + self.Final_SAL[self.t] + self.Final_TST[self.t])
-
-    # Function to calculate unemployment change
-    # Input parameter:
-    # NULL
-    def calc_unemployment(self):
-        y_p = self.rate_unemploy[self.t-1]
-
-        K = max(self.a_sd * self.K_val, y_p)
-
-        A = max(self.A_val, min(self.a_sd * self.K_val, y_p))
-
-        u_plus = (K - A)/self.duration_unemployment
-
-        u_minus = 0.5 * (K - A)/self.duration_unemployment
-        if y_p == K:
-            self.rate_unemploy[self.t] = y_p - u_minus * self.dt
+    # Function to modify current population distribution
+    def new_inf_to_pop(self):
+        # determine number of infected people back to area after traveling
+        self.determine_num_inf_travel()
+        print('t',self.t)
+        print('d',self.d)
+        if self.travel_num_inf[self.t] <= 0:
+            pass
         else:
-            self.rate_unemploy[self.t] = y_p + u_plus *  self.dt
+            tot_susceptible = np.sum(self.pop_dist_sim[self.t, :,19:23,0])
+            if tot_susceptible < 1:
+                self.travel_num_inf[self.t] = 0
+                # input()
+            else:
+                sample = self.pop_dist_sim[self.t, :,19:23,0].flatten()
+                # probability of each people be selected as newly infected
+                prob = sample/tot_susceptible
+                index = np.random.choice((23-19) * self.tot_risk, size = int(self.travel_num_inf[self.t]), p = prob, replace = True)
+                print('index',index)
+                if len(index) != 0:
+                    for i in index:
+                        if i >= (23-19):
+                            age = i - (23-19) + 19
+                            risk = self.tot_risk - 1
+                        else:
+                            age = i + 19
+                            risk = 0
+                        if self.pop_dist_sim[self.t, risk,age, 0] < 1:
+                            self.travel_num_inf[self.t] -= 1
+                            # print('suscepitble in that age and risk less than 1')
+                            # input()
+
+                        else:
+                            self.pop_dist_sim[self.t, risk,age,0] -= 1
+                            self.pop_dist_sim[self.t, risk,age,1] += 1
+                            self.num_new_inf[self.t][risk][age] += 1
+
+    # Function to distribute number of travel-related infection
+    def dist_travel_num_inf(self):
+        if self.unif == 'Y':
+            self.travel_inf_inv = int(1/self.travel_num_inf_per_day)
+
+        else:
+            self.num_travel_inf_l = np.zeros(self.sim_week)
+            total_num_travel_inf = ceil(self.sim_week * self.travel_num_inf_per_day * 7)
+            num_travel_inf_per_week = floor(total_num_travel_inf / self.sim_week)
+
+            mod = total_num_travel_inf % self.sim_week
+
+            if mod > num_travel_inf_per_week:
+                dif = mod - num_travel_inf_per_week
+                week_id = np.random.choice(np.arange(self.sim_week), size = dif, replace = False)
+                for i in range(len(self.num_travel_inf_l)):
+                    if i in week_id:
+                        self.num_travel_inf_l[i] = int(num_travel_inf_per_week+1)
+                    else:
+                        self.num_travel_inf_l[i] = int(num_travel_inf_per_week)
+
+
+    # Function to determine number of infection among travelers
+    # unif = 'Y' means travelers distributed through the week
+    # otherwise only concentrate during the weekend
+    def determine_num_inf_travel(self):
+        if self.unif == 'Y':
+            if self.t % (self.inv_dt * self.travel_inf_inv) == 0:
+                self.travel_num_inf[self.t] = 1
+        else:
+            # print('d', self.d)
+            if self.t % (self.inv_dt * 7) == 0: # after every weekend, there will be newly infected people coming back
+                week = int(self.t / (self.inv_dt * 7)) - 1
+                self.travel_num_inf[self.t] = self.num_travel_inf_l[week]
+            else:
+                self.travel_num_inf[self.t]  = 0
 
     # Function to calculate transition rates (only for the rates that won't change by risk or age)
     # Input parameter:
     # NULL
     def set_rate_array(self):
+
         # rate of S -> L
-        beta_sd = self.beta_min + (1 - self.a_sd) * (self.beta_max - self.beta_min) ### modify this equation to take beta value
+        beta_sd = self.a_sd
+        # beta_sd = self.beta_min + (1 - self.a_sd) * (self.beta_max - self.beta_min) ### modify this equation to take beta value
         self.rate_array[0] = (beta_sd * np.sum(self.pop_dist_sim[(self.t - 1),\
                               :,:,2:4]))/(np.sum(self.pop_dist_sim[(self.t - 1), :,:,0:9]))
+
         # rate of L -> E
         self.rate_array[1] = 1/self.l_days
         # rate of L -> Q_L
@@ -305,44 +384,80 @@ class CovidModel():
                 self.num_uni_test[self.t][risk][age] = (pop_dis_b[0,1] + pop_dis_b[0,2] + pop_dis_b[0,3]) * self.dt * self.a_u
                 # number of diagnosis through contact tracing
                 self.num_trac_test[self.t][risk][age] = (pop_dis_b[0,1] + pop_dis_b[0,2] + pop_dis_b[0,3]) * self.dt * (1 - self.a_u) * self.a_c
+                # number of new infection (S -> L)
+                self.num_new_inf[self.t][risk][age] = pop_dis_b[0,0] * self.rate_array[0] * self.dt
 
+        # self.new_inf_to_pop()
+        self.summarize_epidemic()
+
+    def summarize_epidemic(self):
         # the total number of diagnosis
         self.num_diag[self.t] = self.num_base_test[self.t] + self.num_trac_test[self.t] + self.num_uni_test[self.t]
 
-        # update total number of diagnosis, hospitalizations and deaths
+        ########## output age group based results #######
+        self.tot_hosp_AgeGroup1[self.t] = np.sum(self.num_hosp[self.t, :,:25])
+        self.tot_hosp_AgeGroup2[self.t] = np.sum(self.num_hosp[self.t, :,25:30])
+        self.tot_hosp_AgeGroup3[self.t] = np.sum(self.num_hosp[self.t, :,30:40])
+        self.tot_hosp_AgeGroup4[self.t] = np.sum(self.num_hosp[self.t, :,40:50])
+        self.tot_hosp_AgeGroup5[self.t] = np.sum(self.num_hosp[self.t, :,50:60])
+        self.tot_hosp_AgeGroup6[self.t] = np.sum(self.num_hosp[self.t, :,60:70])
+        self.tot_hosp_AgeGroup7[self.t] = np.sum(self.num_hosp[self.t, :,70:80])
+        self.tot_hosp_AgeGroup8[self.t] = np.sum(self.num_hosp[self.t, :,80:])
+        self.tot_dead_AgeGroup1[self.t] = np.sum(self.num_dead[self.t, :,:25])
+        self.tot_dead_AgeGroup2[self.t] = np.sum(self.num_dead[self.t, :,25:30])
+        self.tot_dead_AgeGroup3[self.t] = np.sum(self.num_dead[self.t, :,30:40])
+        self.tot_dead_AgeGroup4[self.t] = np.sum(self.num_dead[self.t, :,40:50])
+        self.tot_dead_AgeGroup5[self.t] = np.sum(self.num_dead[self.t, :,50:60])
+        self.tot_dead_AgeGroup6[self.t] = np.sum(self.num_dead[self.t, :,60:70])
+        self.tot_dead_AgeGroup7[self.t] = np.sum(self.num_dead[self.t, :,70:80])
+        self.tot_dead_AgeGroup8[self.t] = np.sum(self.num_dead[self.t, :,80:])
+
+        # update cumulative number of diagnosis, hospitalizations and deaths
         self.tot_num_diag[self.t] = self.tot_num_diag[self.t - 1] + np.sum(self.num_diag[self.t])
         self.tot_num_hosp[self.t] = self.tot_num_hosp[self.t - 1] + np.sum(self.num_hosp[self.t])
-        self.tot_num_dead[self.t] = self.tot_num_dead[self.t - 1] +np.sum(self.num_dead[self.t])
+        self.tot_num_dead[self.t] = self.tot_num_dead[self.t - 1] + np.sum(self.num_dead[self.t])
+        self.tot_num_new_inf[self.t] = self.tot_num_new_inf[self.t - 1] + np.sum(self.num_new_inf[self.t])
 
-        self.num_diag_inf[self.t] = np.sum(self.pop_dist_sim[self.t,:,:,4:7])
-        self.num_undiag_inf[self.t] = np.sum(self.pop_dist_sim[self.t,:,:,1:4])
+        self.num_diag_inf[self.t] = np.sum(self.pop_dist_sim[self.t,:,:,4:7])   # Q_L + Q_E + Q_I
+        self.num_undiag_inf[self.t] = np.sum(self.pop_dist_sim[self.t,:,:,1:4]) # L + E + I
+
 
     # Function to run simulate results until start of decision making
-    # Input parameter:
-    # NULL
-    def pre_decision_sim(self):
-        # print('pre_decision_sim begins')
+    # Only assign a certain number of initial infected to the population
+    def pre_decision_sim_mod(self):
+        # Initialzing simulation population distribution by age and risk
+        for risk in range(self.tot_risk):
+            for age in range (self.tot_age):
+                self.pop_dist_sim[self.t, risk, age, 0] = self.init_pop_dist[age, risk + 1]
 
-        while self.t <=  self.pre_sim_days * self.inv_dt:
-            self.t += 1
-            self.step(action_t = np.array([1, 0, 0]))
+        # Randomly assign risk and age to latent compartment ###### wont't it change the results???
+        risk = 1
+        age = 50
 
-        # print('pre_decision_sim ends')
+        # Start with 5 people in latent period until the total number of diagnosis match with first reported case
+        self.pop_dist_sim[self.t, risk, age, 1] = self.init_num_inf # L compartment
 
-    # Function to intialize simulation
-    # Input parameter:
-    # NULL
-    def init_sim(self):
+        for i in range(self.tot_risk, self.num_state):
+            self.pop_dist_sim[self.t, risk, age, i] = 0  # E I Q_L Q_E Q_I H R D compartments
+
+        self.pop_dist_sim[self.t, risk, age, 0] = self.pop_dist_sim[self.t, risk, age, 0] - np.sum(self.pop_dist_sim[self.t, risk, age, 1: self.num_state])
+
+        self.tot_num_new_inf[self.t] = self.init_num_inf
+        self.num_undiag_inf[self.t] = self.init_num_inf
+        self.tot_alive[self.t] = self.tot_pop
+        self.travel_num_inf[self.t] = self.init_num_inf
+
+    def init_sim_mod(self):
         # print("reset_sim begin")
         self.d = 0
         self.t = 0
-        self.rate_array = np.zeros([16 ,1])     # initialize rate array
+        self.rate_array = np.zeros([16 ,1])                                              # initialize rate array
 
         # Initialize measures for epidemics
         self.num_diag = np.zeros((self.T_total + 1, self.tot_risk, self.tot_age))        # number of diagnosis
         self.num_dead = np.zeros((self.T_total + 1, self.tot_risk, self.tot_age))        # number of deaths
         self.num_hosp = np.zeros((self.T_total + 1, self.tot_risk, self.tot_age))        # number of hospitalizations
-
+        self.num_new_inf = np.zeros((self.T_total + 1, self.tot_risk, self.tot_age))     # number of newly infection
         self.pop_dist_sim = np.zeros((self.T_total + 1, self.tot_risk, \
                                       self.tot_age, self.num_state))                     # population distribution by risk, age and epidemic state
 
@@ -353,9 +468,28 @@ class CovidModel():
         self.tot_num_diag = np.zeros(self.T_total + 1)                                   # cumulative diagnosed
         self.tot_num_dead = np.zeros(self.T_total + 1)                                   # cumulative deaths
         self.tot_num_hosp = np.zeros(self.T_total + 1)                                   # cumulative hospitalizations
-
+        self.tot_num_new_inf = np.zeros(self.T_total + 1)                                # cumulative new infections (S-> L)
         self.num_diag_inf = np.zeros(self.T_total + 1)                                   # Q_L + Q_E + Q_I
         self.num_undiag_inf = np.zeros(self.T_total + 1)                                 # L + E + I
+        self.tot_alive = np.zeros(self.T_total + 1)                                      # total number of alive people
+
+        # number of hospitalization and deaths among each age group
+        self.tot_hosp_AgeGroup1 = np.zeros(self.T_total + 1)
+        self.tot_hosp_AgeGroup2 = np.zeros(self.T_total + 1)
+        self.tot_hosp_AgeGroup3 = np.zeros(self.T_total + 1)
+        self.tot_hosp_AgeGroup4 = np.zeros(self.T_total + 1)
+        self.tot_hosp_AgeGroup5 = np.zeros(self.T_total + 1)
+        self.tot_hosp_AgeGroup6 = np.zeros(self.T_total + 1)
+        self.tot_hosp_AgeGroup7 = np.zeros(self.T_total + 1)
+        self.tot_hosp_AgeGroup8 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup1 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup2 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup3 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup4 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup5 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup6 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup7 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup8 = np.zeros(self.T_total + 1)
 
         # initialize action
         self.a_sd = 0
@@ -365,15 +499,16 @@ class CovidModel():
         self.T_u = 0
 
         # Initialize immediate reward related parameters
-        self.imm_reward = np.zeros(self.T_total + 1)
-        self.Final_VSL = np.zeros(self.T_total + 1)
-        self.Final_SAL = np.zeros(self.T_total + 1)
-        self.Final_TST = np.zeros(self.T_total + 1)
-        self.cost_test_u = np.zeros(self.T_total + 1)
-        self.cost_test_c = np.zeros(self.T_total + 1)
-        self.cost_test_b = np.zeros(self.T_total + 1)
-        self.rate_unemploy = np.zeros(self.T_total + 1)
-        self.policy = np.zeros((self.T_total + 1, 3))
+        # self.imm_reward = np.zeros(self.T_total + 1)
+        self.Final_VSL = np.zeros(self.T_total + 1)                                     # VSL loss
+        # self.Final_SAL = np.zeros(self.T_total + 1)
+        self.Final_TST = np.zeros(self.T_total + 1)                                     # cost of testing
+        self.cost_test_u = np.zeros(self.T_total + 1)                                   # cost of universal testing
+        self.cost_test_c = np.zeros(self.T_total + 1)                                   # cost of contact and tracing
+        self.cost_test_b = np.zeros(self.T_total + 1)                                   # cost of symptom-based testing
+        # self.rate_unemploy = np.zeros(self.T_total + 1)
+        self.policy = np.zeros((self.T_total + 1, 3))                                   # decision choices
+        self.travel_num_inf = np.zeros(self.T_total + 1)
 
         # Initialize parameters of t = 0 as the day before the start day of the simulation
         self.pop_dist_sim[0] = self.pre_results['self.pop_dist_sim'].reshape(self.pop_dist_sim[0].shape)
@@ -387,8 +522,77 @@ class CovidModel():
         self.tot_num_diag[0] = self.pre_results['self.tot_num_diag']
         self.tot_num_dead[0] = self.pre_results['self.tot_num_dead']
         self.tot_num_hosp[0] = self.pre_results['self.tot_num_hosp']
-        self.rate_unemploy[0] = self.pre_results['self.rate_unemploy']
 
-        # run simulation before decision making
-        self.pre_decision_sim()
-        # print('init stemim ends')
+
+
+
+    # Function to intialize simulation
+    # Input parameter:
+    # NULL
+    def init_sim(self):
+        # print("reset_sim begin")
+        self.d = 0
+        self.t = 0
+        self.rate_array = np.zeros([16 ,1])                                              # initialize rate array
+
+        # Initialize measures for epidemics
+        self.num_diag = np.zeros((self.T_total + 1, self.tot_risk, self.tot_age))        # number of diagnosis
+        self.num_dead = np.zeros((self.T_total + 1, self.tot_risk, self.tot_age))        # number of deaths
+        self.num_hosp = np.zeros((self.T_total + 1, self.tot_risk, self.tot_age))        # number of hospitalizations
+        self.num_new_inf = np.zeros((self.T_total + 1, self.tot_risk, self.tot_age))     # number of newly infection
+        self.pop_dist_sim = np.zeros((self.T_total + 1, self.tot_risk, \
+                                      self.tot_age, self.num_state))                     # population distribution by risk, age and epidemic state
+
+        self.num_base_test = np.zeros((self.T_total + 1, self.tot_risk, self.tot_age))   # number of diagnosed through symptom-based testing
+        self.num_uni_test = np.zeros((self.T_total + 1, self.tot_risk, self.tot_age))    # number of diagnosed through universal testing
+        self.num_trac_test = np.zeros((self.T_total + 1, self.tot_risk, self.tot_age))   # number of diagnosed through contact tracing
+
+        self.tot_num_diag = np.zeros(self.T_total + 1)                                   # cumulative diagnosed
+        self.tot_num_dead = np.zeros(self.T_total + 1)                                   # cumulative deaths
+        self.tot_num_hosp = np.zeros(self.T_total + 1)                                   # cumulative hospitalizations
+        self.tot_num_new_inf = np.zeros(self.T_total + 1)                                # cumulative new infections (S-> L)
+        self.num_diag_inf = np.zeros(self.T_total + 1)                                   # Q_L + Q_E + Q_I
+        self.num_undiag_inf = np.zeros(self.T_total + 1)                                 # L + E + I
+        self.tot_alive = np.zeros(self.T_total + 1)                                      # total number of alive people
+
+        # number of hospitalization and deaths among each age group
+        self.tot_hosp_AgeGroup1 = np.zeros(self.T_total + 1)
+        self.tot_hosp_AgeGroup2 = np.zeros(self.T_total + 1)
+        self.tot_hosp_AgeGroup3 = np.zeros(self.T_total + 1)
+        self.tot_hosp_AgeGroup4 = np.zeros(self.T_total + 1)
+        self.tot_hosp_AgeGroup5 = np.zeros(self.T_total + 1)
+        self.tot_hosp_AgeGroup6 = np.zeros(self.T_total + 1)
+        self.tot_hosp_AgeGroup7 = np.zeros(self.T_total + 1)
+        self.tot_hosp_AgeGroup8 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup1 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup2 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup3 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup4 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup5 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup6 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup7 = np.zeros(self.T_total + 1)
+        self.tot_dead_AgeGroup8 = np.zeros(self.T_total + 1)
+
+        # initialize action
+        self.a_sd = 0
+        self.a_c = 0
+        self.a_u = 0
+        self.T_c = 0
+        self.T_u = 0
+
+        # Initialize immediate reward related parameters
+        # self.imm_reward = np.zeros(self.T_total + 1)
+        self.Final_VSL = np.zeros(self.T_total + 1)                                     # VSL loss
+        # self.Final_SAL = np.zeros(self.T_total + 1)
+        self.Final_TST = np.zeros(self.T_total + 1)                                     # cost of testing
+        self.cost_test_u = np.zeros(self.T_total + 1)                                   # cost of universal testing
+        self.cost_test_c = np.zeros(self.T_total + 1)                                   # cost of contact and tracing
+        self.cost_test_b = np.zeros(self.T_total + 1)                                   # cost of symptom-based testing
+        # self.rate_unemploy = np.zeros(self.T_total + 1)
+        self.policy = np.zeros((self.T_total + 1, 3))                                   # decision choices
+        self.travel_num_inf = np.zeros(self.T_total + 1)                                # number of infected among travelers
+
+
+        self.pre_decision_sim_mod()
+        # self.dist_travel_num_inf()
+        self.output_result()

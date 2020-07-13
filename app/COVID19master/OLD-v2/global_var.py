@@ -5,11 +5,8 @@ import pathlib
 import json
 import os
 
+def setup_global_variables(state, inv_dt1, path, heroku=False):
 
-
-def setup_global_variables(state, inv_dt1, num_inf1, decision_making_date,
-                           travel_num_inf1, test_sensitivity1, sim_week1, unif1,
-                           final_simul_start_date1, path, heroku = False):
     ##### do not change ######
     global tot_risk
     tot_risk = 2
@@ -19,9 +16,6 @@ def setup_global_variables(state, inv_dt1, num_inf1, decision_making_date,
     ##### do not change ######
 
     ##### user defined input #######
-    global init_num_inf
-    init_num_inf = num_inf1
-
     global enter_state
     enter_state = state
 
@@ -33,15 +27,15 @@ def setup_global_variables(state, inv_dt1, num_inf1, decision_making_date,
     ##### user defined input #######
 
     ##### read simulation input #######
-    sim_result = read_sim_inputs(state = enter_state, path = path, heroku = False)
+    sim_result = read_sim_inputs(state = enter_state, path = path, heroku=heroku)
     global symp_hospitalization_v
     symp_hospitalization_v = sim_result[0]
 
     global percent_dead_recover_days_v
     percent_dead_recover_days_v = sim_result[1]
 
-    # global pop_dist_v
-    # pop_dist_v = sim_result[2]
+    global pop_dist_v
+    pop_dist_v = sim_result[2]
 
     global input_list_const_v # dataframe
     input_list_const_v = sim_result[3]
@@ -71,7 +65,7 @@ def setup_global_variables(state, inv_dt1, num_inf1, decision_making_date,
     diag_indices = diag_indices_loc(Q)
 
     ###### read date related result ##########
-    """date_result = read_date(state = enter_state)
+    date_result = read_date(state = enter_state, path=path, heroku=heroku)
     final_simul_start_date = date_result[0]
 
     global begin_decision_date
@@ -88,15 +82,16 @@ def setup_global_variables(state, inv_dt1, num_inf1, decision_making_date,
 
     global actual_data
     actual_data = date_result[6]
-    """
+
     ##### read RL input #######
-    # rl_result = read_RL_inputs(state = enter_state, start_sim_date = final_simul_start_date)
-    rl_result = read_RL_inputs(state = enter_state, path=path, heroku=heroku)
+    rl_result = read_RL_inputs(state = enter_state,
+                               start_sim_date = final_simul_start_date,
+                               path = path, heroku=heroku)
+
     global VSL
-    VSL = rl_result#[0]
+    VSL = rl_result[0]
 
-
-    """global lab_for
+    global lab_for
     lab_for = rl_result[1]
 
     global K_val
@@ -116,109 +111,61 @@ def setup_global_variables(state, inv_dt1, num_inf1, decision_making_date,
 
     global pre_results_dict
     global pre_results_df
-    pre_results_dict, pre_results_df = read_pre_results(state)"""
+    pre_results_dict, pre_results_df = read_pre_results(state, path = path, heroku=heroku)
 
     global T_max
 
-    # global md_salary
+    global md_salary
 
     global test_cost
 
-    global pop_dist_v
-    global total_pop
-    # total_pop, pop_dist_v = read_pop_dist(state, prop1, path = path, heroku = False)
 
-    global day_decison_making
-    day_decison_making = decision_making_date
-
-    global travel_num_inf
-    travel_num_inf = travel_num_inf1
-
-    global SAR
-
-    global test_sensitivity
-    test_sensitivity = test_sensitivity1
-
-    global sim_week
-    sim_week = sim_week1
-
-    global unif
-    unif = unif1
-
-    global final_simul_start_date
-    final_simul_start_date = final_simul_start_date1
-
-    # global pre_results_dict
-    # global pre_results_df
-    # pre_results_dict, pre_results_df = read_pre_results(state, path = path, heroku=heroku)
 
 # Function to read pre-run results for simulation and plotting
-# def read_pre_results(state):
-#     if heroku == False:
-#         f1 = os.path.join(path,'app\\COVID19master\\data\\results\\{0}_sim_results.json'.format(state))
-#         f2 = os.path.join(path,'app\\COVID19master\\data\\results\\{0}_sim_results.xlsx'.format(state))
-#     else:
-#         f1 = os.path.join(path,'app/COVID19master/data/results/{0}_sim_results.json'.format(state))
-#         f2 = os.path.join(path,'app/COVID19master/data/results/{0}_sim_results.xlsx'.format(state))
-
-#     #f1 = pathlib.Path('data/results/{0}_sim_results.json'.format(state))
-#     json_file = open(f1,)
-#     data = json.load(json_file)
-#     new_dict = {}
-#     for key, value in data.items():
-#         if isinstance(value, list):
-#             new_dict[key] = np.array([[x] for x in value])
-#         elif isinstance(value, str):
-#             new_dict[key] = pd.Timestamp(value).date()
-#         else:
-#             new_dict[key] = value
-#     json_file.close()
-
-#     #f2 =  pathlib.Path('data/results/{0}_sim_results.xlsx'.format(state))
-#     df = pd.ExcelFile(f2)
-#     return new_dict, df
-
-# Function to read population distribution by State /university
-# Distribute age to a certain propotion of the total population
-def read_pop_dist(state, prop, path, heroku = False):
-    # excel = pathlib.Path('data/age_dist_univ.xlsx')
+def read_pre_results(state, path, heroku=False):
     if heroku == False:
-        excel =  os.path.join(path,'app\\COVID19master\\data\\age_dist_univ.xlsx')
+        f1 = os.path.join(path,'app\\COVID19master\\data\\results\\{0}_sim_results.json'.format(state))
+        f2 = os.path.join(path,'app\\COVID19master\\data\\results\\{0}_sim_results.xlsx'.format(state))
     else:
-        excel = os.path.join(path,'app/COVID19master/data/age_dist_univ.xlsx')
+        f1 = os.path.join(path,'app/COVID19master/data/results/{0}_sim_results.json'.format(state))
+        f2 = os.path.join(path,'app/COVID19master/data/results/{0}_sim_results.xlsx'.format(state))
 
-    pop_dist = pd.read_excel(excel, sheet_name = state, index_col = 0)
-    total_pop = pop_dist.sum().sum()
-    total_pop_mod = total_pop * prop
-    age_dist = pop_dist/total_pop
-    pop_dist_mod = total_pop_mod * age_dist
-    # travel_dist = 0.1 * pop_dist_mod   # 10 percent of total population
+    #f1 = pathlib.Path('data/results/{0}_sim_results.json'.format(state))
+    json_file = open(f1,)
+    data = json.load(json_file)
+    new_dict = {}
+    for key, value in data.items():
+        if isinstance(value, list):
+            new_dict[key] = np.array([[x] for x in value])
+        elif isinstance(value, str):
+            new_dict[key] = pd.Timestamp(value).date()
+        else:
+            new_dict[key] = value
+    json_file.close()
 
-    pop_dist_mod['age'] = pop_dist_mod.index
-    pop_dist_mod = pop_dist_mod[['age', 'female', 'male']]
-
-    # travel_dist['age'] = travel_dist.index
-    # travel_dist = travel_dist[['age', 'female', 'male']]
-
-    pop_dist_mod_v = pop_dist_mod.values
-    # travel_dist_v = travel_dist.values
-
-    # return total_pop_mod, pop_dist_mod_v, travel_dist_v
-    return total_pop_mod, pop_dist_mod_v
+    #f2 =  pathlib.Path('data/results/{0}_sim_results.xlsx'.format(state))
+    df = pd.ExcelFile(f2)
+    return new_dict, df
 
 
 # Function to read simulation related parameters
 def read_sim_inputs(state, path, heroku=False):
     # the Excel files need to read
-    # excel1= pathlib.Path('data/COVID_input_parameters.xlsx')
-    # excel2 = pathlib.Path('data/pop_dist.xlsx')
-    # excel3 = pathlib.Path('data/states_beta.xlsx')
+    #excel1= pathlib.Path('data/COVID_input_parameters.xlsx')
+    #excel2 = pathlib.Path('data/pop_dist.xlsx')
+    #excel3 = pathlib.Path('data/states_beta.xlsx')
+
     if heroku == False:
         excel1= os.path.join(path,'app\\COVID19master\\data\\COVID_input_parameters.xlsx')
+        excel2 = os.path.join(path, 'app\\COVID19master\\data\\pop_dist.xlsx')
+        #excel3 = os.path.join(path, 'app\\COVID19master\\data\\actual_valid_data.xlsx')
         excel3 = os.path.join(path,'app\\COVID19master\\data\\states_beta.xlsx')
     else:
         excel1= os.path.join(path,'app/COVID19master/data/COVID_input_parameters.xlsx')
+        excel2 = os.path.join(path, 'app/COVID19master/data/pop_dist.xlsx')
+        #excel3 = os.path.join(path, 'app/COVID19master/data/actual_valid_data.xlsx')
         excel3 = os.path.join(path,'app/COVID19master/data/states_beta.xlsx')
+
 
     # read blank Q-matrix
     q_mat_blank = pd.read_excel(excel1, sheet_name = 'q-mat_blank')
@@ -236,10 +183,8 @@ def read_sim_inputs(state, path, heroku=False):
     percent_dead_recover_days_v = percent_dead_recover_days.values
 
     # read population distribution of the State
-    # pop_dist = pd.read_excel(excel2, sheet_name = state)
-    # pop_dist_v = pop_dist.values
-
-    pop_dist_v = 0  # dummy value
+    pop_dist = pd.read_excel(excel2, sheet_name = state)
+    pop_dist_v = pop_dist.values
 
     # beta for the State
     states_betas = pd.read_excel(excel3, sheet_name = 'Sheet1', index_col = 0)
@@ -259,10 +204,16 @@ def read_sim_inputs(state, path, heroku=False):
 
 
 # Function to read date related data
-def read_date(state):
+def read_date(state, path, heroku=False):
     # the Excel files need to read
-    excel1 = pathlib.Path('data/COVID_input_parameters.xlsx')
-    excel2 = pathlib.Path('data/actual_valid_data.xlsx')
+    #excel1 = pathlib.Path('data/COVID_input_parameters.xlsx')
+    #excel2 = pathlib.Path('data/actual_valid_data.xlsx')
+    if heroku == False:
+        excel1 = os.path.join(path, 'app\\COVID19master\\data\\COVID_input_parameters.xlsx')
+        excel2 = os.path.join(path,'app\\COVID19master\\data\\actual_valid_data.xlsx')
+    else:
+        excel1 = os.path.join(path, 'app/COVID19master/data/COVID_input_parameters.xlsx')
+        excel2 = os.path.join(path,'app/COVID19master/data/actual_valid_data.xlsx')
 
     # read social distancing start date
     sd_date = pd.read_excel(excel1, sheet_name='sd_date')
@@ -343,15 +294,13 @@ def diag_indices_loc(Q):
 # state - State you want to model
 # start_sim_date -  start date of simulation
 
-# def read_RL_inputs(state, start_sim_date):
-def read_RL_inputs(state, path, heroku=False):
+def read_RL_inputs(state, start_sim_date, path, heroku=False):
     # read data
     # excel = pathlib.Path('data/RL_input.xlsx')
     if heroku == False:
         excel = os.path.join(path,'app\\COVID19master\\data\\RL_input.xlsx')
     else:
         excel = os.path.join(path, 'app/COVID19master/data/RL_input.xlsx')
-
     df = pd.ExcelFile(excel)
     # read VSL
     VSL1 = df.parse(sheet_name='VSL_mod')
@@ -359,36 +308,35 @@ def read_RL_inputs(state, path, heroku=False):
     VSL3 = np.transpose(VSL2)
     VSL = VSL3[:][1]
 
-    return  VSL
-    # # read labor force participation rate
-    # lab_for_v = df.parse(sheet_name='labor_for', index_col = 0)
-    # val = lab_for_v.loc[state, 'Labor force participate rate']/100
+    # read labor force participation rate
+    lab_for_v = df.parse(sheet_name='labor_for', index_col = 0)
+    val = lab_for_v.loc[state, 'Labor force participate rate']/100
 
-    # # read maximum and minimum unemployment rate
-    # cof_unemploy = df.parse(sheet_name='unemploy_cof_mod', index_col = 0)
-    # K_val = cof_unemploy.loc[state, 'max']/100
-    # A_val = cof_unemploy.loc[state, 'min']/100
+    # read maximum and minimum unemployment rate
+    cof_unemploy = df.parse(sheet_name='unemploy_cof_mod', index_col = 0)
+    K_val = cof_unemploy.loc[state, 'max']/100
+    A_val = cof_unemploy.loc[state, 'min']/100
 
-    # # read actual unemployment rate
-    # acutal_unemp = df.parse(sheet_name='actual_unemploy_mod')
-    # acutal_unemp['Date'] = pd.to_datetime(acutal_unemp['Date'], format='%Y%m%d', errors='coerce')
-    # acutal_unemp = acutal_unemp.loc[:, ('Date', state)]
-    # acutal_unemp = acutal_unemp[(acutal_unemp['Date'] > pd.Timestamp(start_sim_date))]
-    # acutal_unemp = acutal_unemp.reset_index(drop = True)
-    # acutal_unemp[state] = acutal_unemp[state].astype(float)
+    # read actual unemployment rate
+    acutal_unemp = df.parse(sheet_name='actual_unemploy_mod')
+    acutal_unemp['Date'] = pd.to_datetime(acutal_unemp['Date'], format='%Y%m%d', errors='coerce')
+    acutal_unemp = acutal_unemp.loc[:, ('Date', state)]
+    acutal_unemp = acutal_unemp[(acutal_unemp['Date'] > pd.Timestamp(start_sim_date))]
+    acutal_unemp = acutal_unemp.reset_index(drop = True)
+    acutal_unemp[state] = acutal_unemp[state].astype(float)
 
-    # # read initial unemployment rate
-    # init_unemploy = acutal_unemp.loc[0, state]/100
+    # read initial unemployment rate
+    init_unemploy = acutal_unemp.loc[0, state]/100
 
-    # acutal_unemp.rename(columns = {state: 'Actual unemployment rate'}, inplace = True)
-    # acutal_unemp['Actual unemployment rate'] /= 100
+    acutal_unemp.rename(columns = {state: 'Actual unemployment rate'}, inplace = True)
+    acutal_unemp['Actual unemployment rate'] /= 100
 
-    # # read duration from start of social distancing to the maximum of unemployment rate
-    # dur = df.parse(sheet_name = 'duration_unemploy', index_col = 0)
-    # dur = dur.loc[state]
-    # max_date = pd.to_datetime(dur.loc['max_date'], format='%Y%m%d', errors='coerce')
-    # sd_date = pd.to_datetime(dur.loc['sd_date'], format='%Y%m%d', errors='coerce')
-    # duration_unemployment = abs(max_date - sd_date).days
+    # read duration from start of social distancing to the maximum of unemployment rate
+    dur = df.parse(sheet_name = 'duration_unemploy', index_col = 0)
+    dur = dur.loc[state]
+    max_date = pd.to_datetime(dur.loc['max_date'], format='%Y%m%d', errors='coerce')
+    sd_date = pd.to_datetime(dur.loc['sd_date'], format='%Y%m%d', errors='coerce')
+    duration_unemployment = abs(max_date - sd_date).days
 
     # read median wage and cost of testing by type
     # others = df.parse(sheet_name='others')
@@ -396,8 +344,7 @@ def read_RL_inputs(state, path, heroku=False):
     # md_salary = others_list[0][0]/8 *(40/7)
     # test_cost = others_list[0][1:]
 
-    # return  VSL, val, K_val, A_val, duration_unemployment, init_unemploy, acutal_unemp
-
+    return  VSL, val, K_val, A_val, duration_unemployment, init_unemploy, acutal_unemp
 
 # Returns 8 values
 # [0] = VSL - the Value of statistical life by age (type: NumPy array of size 101x1)
@@ -409,13 +356,13 @@ def read_RL_inputs(state, path, heroku=False):
 # [6] = acutal_unemp - actual unemployment rate (type: DataFrame)
 
 # Function to read cost related data
-# def read_cost(data_path):
-#     df = pd.ExcelFile(data_path)
-#     others = df.parse(sheet_name='Sheet1')
-#     others_list = others.values.tolist()
-#     md_salary = others_list[0][0]/8 *(40/7)
-#     test_cost = others_list[0][1:]
-#     return md_salary, test_cost
+def read_cost(data_path):
+    df = pd.ExcelFile(data_path)
+    others = df.parse(sheet_name='Sheet1')
+    others_list = others.values.tolist()
+    md_salary = others_list[0][0]
+    test_cost = others_list[0][1:]
+    return md_salary, test_cost
 # Returns 2 values
 # [0] = md_salary - coverted daily median wage (type: float)
 # [1] = test_cost - A list of size 1x3 which is the cost of symptom-based testing,

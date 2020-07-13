@@ -5,76 +5,71 @@
 <div class='w3-container' style="background-color:#34495E;"  id='everything'>
   <div class='w3-panel  w3-col s3'>
     <div class='w3-border w3-round w3-blue-grey' style="height:75vh">
-      <h2 class='w3-border-bottom' id=StateNameTitle style='text-align:center'></h2>
-      <p>
+      <h2 class='w3-border-bottom' style='text-align:center'>Simulation Parameters</h2>
+      <!--<h3 class='w3-border-bottom' id=StateNameTitle style='text-align:center'>Simulation Parameters</h3>
         <div id=overviewStateChoice  style='font-size:16px'> Choose State:
         <select class='w3-margin-top' id='simState' onchange='graph_stateChoice()' style='width:50%'>
           <option value="New York">New York</option>
-        </select></div>
-        <div class='w3-round'>Run Simulation Until:
-          <input id=simLength class='w3-round' type=date value='2020-12-31' onchange='remakeUserTable()'></input>
+        </select></div>-->
+
+      <div class='w3-row'>
+        <div class='w3-col s10'>Length of Simulation Run (days):</div>
+        <input id=simLength  class='w3-round w3-col s2' type=number value=100  onchange='remakeUserTable()' ></input>
+      </div>
+      <div class='w3-row'>
+        <div class='w3-col s6'>Start Simulation:</div>
+        <input id=simLength  class='w3-round w3-col s6' type=date value=2020-08-24  onchange='remakeUserTable()' ></input>
+      </div>
+      <div class='w3-row'>
+        <div class='w3-col s6'>End Simulation:</div>
+        <input id=simLength  class='w3-round w3-col s6' type=date value=2020-11-30  onchange='remakeUserTable()' ></input>
+      </div>
+      <h3 class='w3-border-top' style='text-align:center'> Starting Conditions</h3>
+      <div>
+        <div class='w3-row'>
+          <div class='w3-col s8'>Enter Population Size:</div>
+          <input id=popSize class='w3-round w3-col s4' type=number value=10000></input>
         </div>
-        <p class='w3-border-top'> Cost Parameters</p>
-        <div>
-          <div class='w3-round'>Symptom-Based Testing:
-             <input id=costSB class='w3-round' type=number value=50 onchange='updateOverview()' style='width:33%'></input>
-           </div>
-          <div class='w3-round'>Contact Tracing:
-             <input id=costCT class='w3-round' type=number value=50 onchange='updateOverview()' style='width:33%'></input>
-           </div>
-          <div class='w3-round'>Universal Testing:
-            <input id=costUT class='w3-round' type=number value=50 onchange='updateOverview()' style='width:33%'></input>
-          </div>
-          <div class='w3-round'>Unemployement Wage:
+        <div class='w3-row'>
+           <div class='w3-col s8'>Initial Infections:</div>
+           <input id=initialInfections class='w3-round w3-col s4' type=number value=500></input>
+        </div>
+        <div class='w3-row'>
+          <div class='w3-col s8'>Outside Infections:</div>
+          <input id=outsideInfections class='w3-round w3-col s4' type=number value=500></input>
+        </div>
+      </div>
+      <h3 class='w3-border-top' style='text-align:center'> Cost Parameters</h3>
+      <div>
+        <div class='w3-row'>
+          <div class='w3-col s8'>Symptom-Based Testing:</div>
+          <input id=costSB class='w3-round w3-col s4' type=number value=50 onchange='updateOverview()' style='width:33%'></input>
+        </div>
+        <div class='w3-row'>
+          <div class='w3-col s8'>Contact Tracing:</div>
+          <input id=costCT class='w3-round w3-col s4' type=number value=50 onchange='updateOverview()' style='width:33%'></input>
+        </div>
+        <div class='w3-row'>
+          <div class='w3-col s8'>Universal Testing:</div>
+          <input id=costUT class='w3-round w3-col s4' type=number value=50 onchange='updateOverview()' style='width:33%'></input>
+        </div>
+          <!--<div class='w3-round'>Unemployment Wage:
              <input id=costUW class='w3-round' type=number value=50 onchange='updateOverview()' style='width:33%'></input>
-          </div>
-        </div>
-      </p>
-      <p class='w3-border-top'>Policy Builder Checklist</p>
-      <table class='w3-table-all w3-small w3-centered' style='color:black'>
-        <tr>
-          <th class='w3-border'>Policy Name</th>
-          <th class='w3-border'>Plan A</th>
-          <th class='w3-border'>Plan B</th>
-          <th class='w3-border'>Plan C</th>
-        </tr>
-        <tr>
-          <td class='w3-border'>Contact Reduction</td>
-          <td id=crA class='w3-border'></td>
-          <td id=crB class='w3-border'></td>
-          <td id=crC class='w3-border'></td>
-        </tr>
-        <tr>
-          <td class='w3-border'>Universal Testing</td>
-          <td id=utA class='w3-border'></td>
-          <td id=utB class='w3-border'></td>
-          <td id=utC class='w3-border'></td>
-        </tr>
-        <tr>
-          <td class='w3-border'>Contact Tracing</td>
-          <td id=ctA class='w3-border'></td>
-          <td id=ctB class='w3-border'></td>
-          <td id=ctC class='w3-border'></td>
-        </tr>
-        <tr>
-          <td class='w3-border'>Is Usable?</td>
-          <td id=useA class='w3-border'>No</td>
-          <td id=useB class='w3-border'>No</td>
-          <td id=useC class='w3-border'>No</td>
-        </tr>
-      </table>
+          </div>-->
+      </div>
     </div>
     <div class='w3-border w3-panel w3-round w3-blue-grey' style="height:7.5vh">
-      <div><button class='w3-button w3-green w3-round w3-col s12' onclick='start_sim()' style='height:7vh'>Run Simulation</button></div>
+      <div><button class='w3-button w3-green w3-round w3-col s6' onclick="switchTab('goReview', 'reviewTab')" style='height:7vh'>Review Policies</button></div>
+      <div><button class='w3-button w3-red w3-round w3-col s6' onclick='start_sim()' style='height:7vh'>Run Simulation</button></div>
     </div>
   </div>
-  <div class='w3-panel w3-border w3-round w3-col s9 w3-blue-grey' style="height:85vh">
+  <div class='w3-panel w3-border w3-round w3-col s9 w3-blue-grey' style="height:85vh; overflow-y:scroll">
     <div class="w3-bar w3-black">
-      <button class="w3-bar-item w3-button tablink w3-red" onclick="switchTab(event, 'reviewTab')">Overview + Cost Parameters</button>
-      <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'contactReductionTab')">Contact Reduction</button>
-      <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'universalTestingTab')">Universal Testing</button>
-      <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'contactTracingTab')">Contact Tracing</button>
-      <button class="w3-bar-item w3-button tablink" onclick="switchTab(event, 'simResultGraphs')">Simulation Results</button>
+      <button id=goReview class="w3-bar-item w3-button tablink w3-red" onclick="switchTab('goReview', 'reviewTab')">Overview</button>
+      <button id=goCR class="w3-bar-item w3-button tablink" onclick="switchTab('goCR', 'contactReductionTab')">Contact Rate</button>
+      <button id=goUT class="w3-bar-item w3-button tablink" onclick="switchTab('goUT', 'universalTestingTab')">% Mass Testing</button>
+      <button id=goCT class="w3-bar-item w3-button tablink" onclick="switchTab('goCT', 'contactTracingTab')">% Trace and Test</button>
+      <button id=goResult class="w3-bar-item w3-button tablink" onclick="switchTab('goResult', 'simResultGraphs')">Simulation Results</button>
     </div>
     <div id=contactReductionTab class='tabbed' style="display:none">
       <div class='w3-panel  w3-col s6'>
@@ -129,19 +124,52 @@
     </div>
     <div id=reviewTab class='tabbed'>
       <div class='w3-panel w3-col s6'>
-        <div class='w3-border w3-round' style='height:30vh'>
+        <div class='w3-border w3-round' style='height:37.5vh'>
           <p>General Introduction To The Policy Builder</p>
           <p>Description goes here</p>
         </div>
-        <div class='w3-border w3-round w3-margin-top' style='height:30vh'>
-          <div class='w3-border w3-round w3-light-grey'  id=resultGraph></div>
+        <div class='w3-border w3-round w3-margin-top' style='height:35vh'>
+          <!--<div class='w3-border w3-round w3-light-grey' id=resultGraph></div>
           <select  name="colorState" id="quickStat" onchange="graph_stateChoice()">
             <option value="positive">Cases</option>
             <option value="totalTestResults">Tests</option>
             <option value="death">Deaths</option>
             <option value="hospitalized">Hospitalizations</option>
             <option value="recovered">Recoveries</option>
-          </select></p>
+          </select></p>-->
+          <h3 style='text-align:center'>Policy Builder Checklist</h3>
+          <table class='w3-table-all w3-small w3-centered' style='color:black'>
+            <tr>
+              <th class='w3-border'>Policy Name</th>
+              <th class='w3-border'>Plan A</th>
+              <th class='w3-border'>Plan B</th>
+              <th class='w3-border'>Plan C</th>
+            </tr>
+            <tr>
+              <td class='w3-border'>Contact Rate</td>
+              <td id=crA class='w3-border'></td>
+              <td id=crB class='w3-border'></td>
+              <td id=crC class='w3-border'></td>
+            </tr>
+            <tr>
+              <td class='w3-border'>% Mass Testing</td>
+              <td id=utA class='w3-border'></td>
+              <td id=utB class='w3-border'></td>
+              <td id=utC class='w3-border'></td>
+            </tr>
+            <tr>
+              <td class='w3-border'>% Trace & Tracing</td>
+              <td id=ctA class='w3-border'></td>
+              <td id=ctB class='w3-border'></td>
+              <td id=ctC class='w3-border'></td>
+            </tr>
+            <tr>
+              <td class='w3-border'>Is Usable?</td>
+              <td id=useA class='w3-border'>No</td>
+              <td id=useB class='w3-border'>No</td>
+              <td id=useC class='w3-border'>No</td>
+            </tr>
+          </table>
         </div>
       </div>
       <div class='w3-panel w3-border w3-col s6 w3-round' style='height:75vh'>
@@ -151,6 +179,23 @@
       </div>
     </div>
     <div id='simResultGraphs' class='tabbed' style="display:none">
+      <div id=simNotRunYet style='display:block'>
+        <h3> You have not run the simulator yet</h3>
+        <h3> Click the "Run Simulation" button (bottom left) to simulate your policy scenarios! </h3>
+        <h3> Make sure to review the policies you entered by clicking the "Review Policies" button</h3>
+      </div>
+      <div id=simRunning style='display:none'>
+        <div>
+          <h3> The simulator is currently running...  Estimated Time is about ~ <i id=timeToComp>5</i> seconds per scenario</h3>
+          <p style='text-align:center'><i class="fa fa-spinner w3-spin" style="font-size:100px"></i></p>
+          <h3> DO NOT LEAVE THIS PAGE while the simulation is running </h3>
+          <h3> Results will be updated below every ~20 seconds
+             until the simulation has completed... Once the simulation is completed, these messages will dissapear</h3>
+        </div>
+      </div>
+      <div id=simCompleted style='display:none'>
+        <h3> Simulation Completed,  <a href="{{ url_for('blueprint.download_newfile') }}">Download Excel File With Results </a></h3>
+      </div>
       <div class='w3-col s6' style='height:60vh'>
         <div class='w3-border w3-light-grey' id=resultGraphCases></div>
         <div class='w3-border w3-light-grey' id=resultGraphDeath></div>
@@ -221,12 +266,12 @@ states_hash =
     'Wisconsin': 'WI',
     'Wyoming': 'WY'
   }
-stateDropdown(id='simState')
+//stateDropdown(id='simState')
 
 function remakeUserTable(){
-  makeEmptyTable("usertableCR", numWeeks=12, startVal=1, endVal=.25)
-  makeEmptyTable("usertableCT", numWeeks=12, startVal=100, endVal=5000)
-  makeEmptyTable("usertableUT", numWeeks=12, startVal=100, endVal=3000)
+  makeEmptyTable("usertableCR", startVal=1, endVal=10)
+  makeEmptyTable("usertableCT", startVal=.5, endVal=.3)
+  makeEmptyTable("usertableUT", startVal=.25, endVal=.8)
   savePolicies()
 }
 remakeUserTable()
@@ -294,11 +339,12 @@ function updateOverview(){
 
 }
 
-function makeEmptyTable(parentDiv, numWeeks, startVal, endVal) {
+function makeEmptyTable(parentDiv, startVal, endVal) {
     //document.getElementById(parentDiv).innerHTML = '' // clear old table if any
     table = document.getElementById(parentDiv) // establish new table
     table.innerHTML = ''
-    numWeeks = Math.round((new Date(document.getElementById('simLength').value).getTime() - new Date()) / 60 / 60 / 24 / 1000 / 7 )
+    //numWeeks = Math.round((new Date(document.getElementById('simLength').value).getTime() - new Date()) / 60 / 60 / 24 / 1000 / 7 )
+    numWeeks = Math.round(document.getElementById('simLength').value / 7)
     numRows = numWeeks
     numCol = 4
 
@@ -331,7 +377,7 @@ function makeEmptyTable(parentDiv, numWeeks, startVal, endVal) {
 }
 
 
-graph_stateChoice()
+//graph_stateChoice()
 function graph_stateChoice(){
   var state = d3.select("#simState")._groups[0][0].value // get user pasted data
   var dataType = d3.select("#quickStat")._groups[0][0].value
@@ -347,12 +393,13 @@ function data_for_sim(){
   var dataCR = tableToJson("usertableCR", 'column')
   var dataUT = tableToJson("usertableUT", 'column')
   var dataCT = tableToJson("usertableCT", 'column')
-  console.log(dataCR)
   costSB = d3.select("#costSB")._groups[0][0].value
   costCT = d3.select("#costCT")._groups[0][0].value
   costUT = d3.select("#costUT")._groups[0][0].value
-  costUW = d3.select("#costUW")._groups[0][0].value
-  var state = d3.select("#simState")._groups[0][0].value // get user pasted data
+  //costUW = d3.select("#costUW")._groups[0][0].value
+  costUW = 50
+  //var state = d3.select("#simState")._groups[0][0].value // get user pasted data
+  state = 'New York'
   to_python = {'state':state,
                'policy': {'CT':{'Date':dataCT['Date'],
                                 'A':dataCT['PlanA'],
@@ -373,6 +420,11 @@ function data_for_sim(){
 }
 
 function start_sim(to_python=null){
+  document.getElementById('simNotRunYet').style.display = 'none'
+  document.getElementById('simRunning').style.display = 'block'
+  switchTab('goResult', 'simResultGraphs')
+  simLength = parseInt(document.getElementById('simLength').value / 3)
+  document.getElementById('timeToComp').innerHTML = simLength
   if (to_python == null){
     to_python = data_for_sim()
   }
@@ -384,6 +436,7 @@ function start_sim(to_python=null){
         success: function (dataset) {
           all_data = dataset.data;
           simA = to_object(all_data['A']['to_java'], 'Summary')
+          console.log(simA)
           if (all_data['B'] == undefined){
             simB = null
           } else{
@@ -391,10 +444,9 @@ function start_sim(to_python=null){
           }
           if (all_data['C'] == undefined){
             simC = null
-          } else{
+          } else {
             simC = to_object(all_data['C']['to_java'], 'Summary')
           }
-          switchTab(event, 'simResultGraphs')
           d3.json("https://covidtracking.com/api/v1/states/daily.json").then(function(covid_data){
             makeSimLine('resultGraphCases', 'infsim', covid_data,
               state=state, dataType='positive',cumulative='cumulative',
@@ -412,6 +464,9 @@ function start_sim(to_python=null){
           if (all_data['status'] == 'Not Finished'){
             console.log('back to it')
             start_sim(to_python=all_data)
+          } else {
+            document.getElementById('simRunning').style.display='none'
+            document.getElementById('simCompleted').style.display='block'
           }
         },
   });
@@ -467,21 +522,19 @@ function tableToJson(id, type='index') {
   return data;
 }
 
-function switchTab(evt, showTab) {
+function switchTab(clickTab, showTab) {
   var i;
   var x = document.getElementsByClassName("tabbed");
   for (i = 0; i < x.length; i++) {
     x[i].style.display = "none";
   }
-
   tablinks = document.getElementsByClassName("tablink");
   for (i = 0; i < x.length; i++) {
     tablinks[i].className = tablinks[i].className.replace("w3-red", "");
   }
-
   document.getElementById(showTab).style.display = "block";
-  evt.currentTarget.className += " w3-red";
-  graph_stateChoice()
+  document.getElementById(clickTab).className += ' w3-red'
+  //graph_stateChoice()
   savePolicies()
   }
 

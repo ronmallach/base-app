@@ -1,4 +1,4 @@
-from flask import (Blueprint, flash, redirect, render_template, request, 
+from flask import (Blueprint, flash, redirect, render_template, request,
                    url_for, jsonify, Response, send_file)
 # from app.COVID19master import COVID_model_colab
 # from app.COVID19master import read_policy_mod
@@ -8,9 +8,7 @@ import os
 
 bp = Blueprint('blueprint', __name__)
 
-# @app.route('/')
-# @app.route('/index')
-# @login_required
+
 @bp.route('/', methods=('GET', 'POST'))
 def index():
     return render_template('index.html')
@@ -38,19 +36,20 @@ def prep_sim():
     if get['new'] == 'True':
         print([int(cost) for cost in get['cost']])
         rl_input = backend.read_ABC(get)
-        # transform user inputs... will return 
+        # transform user inputs... will return
         results = {plan:{'is_complete':'False',
                          'remaining_decision':decision,
                          'to_java':None,
                          'pre_data':None,
                          'cost':[int(cost) for cost in get['cost']],
-                         'unemp':int(get['UW'])} for plan, decision in rl_input.items()}
+                        #  'unemp':int(get['UW'])} for plan, decision in rl_input.items()}
+                         'prop':int(get['UW'])} for plan, decision in rl_input.items()}
     else:
     # else, if this is NOT the first time the prep_sim function is called,
     # take the partially completed simulation data and prep it.
         results = backend.prep_input_for_python(get)
     heroku = False if len(os.getcwd()) > 25 else True # set the paths
-    max_time=15 # passed to simulation as the max time to run for
+    max_time=25 # passed to simulation as the max time to run for
     stop=False # condition to make sure simulation loop does not start another plan
     for plan, instructions in results.items(): # for plan in [A,B,C]
         if type(instructions) == dict:
@@ -61,9 +60,10 @@ def prep_sim():
                 data = instructions['to_java']
                 pre_data = instructions['pre_data']
                 costs = instructions['cost']
-                uw = instructions['unemp']
+                #uw = instructions['unemp']
+                uw = instructions['prop']
                 # ^ make parameters
-                output = backend.main_run(state='NY', decision=decision,
+                output = backend.main_run(state='UMASS', decision=decision,
                                           uw=uw, costs=costs, T_max=T_max,
                                           data=pre_data, pre_data=data,
                                           heroku=heroku, max_time=max_time)
@@ -82,4 +82,3 @@ def prep_sim():
     results['status'] = status # set status
     results['new'] = 'False' # set status
     return jsonify(status='success', data=results)
-
