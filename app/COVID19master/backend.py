@@ -50,7 +50,7 @@ def main_run(state, decision, T_max, uw = 1, costs=[50,50,50], data=None,
     # gv.md_salary = uw
     gv.test_cost = costs
     # distribution the simulation population by age and gender
-    gv.total_pop, gv.pop_dist_v = gv.read_pop_dist(state, uw, path = path, heroku = False)
+    gv.total_pop, gv.pop_dist_v = gv.read_pop_dist(state, uw, path = path, heroku = heroku)
     # gv.T_max = T_max
     gv.T_max = abs((decision_making_date.date() - final_simul_start_date.date()).days)
     # ^ set gloable variables
