@@ -64,7 +64,7 @@ def main_run(state, decision, T_max, uw = 1, costs=[50,50,50], data=None,
         model.t += 1
         if model.t % 25 == 0: print('t', model.t, np.round(timer, 2))
         # ^ print progress
-        if i % model.inv_dt == 0: # if next day, set policy for the new day
+        if i % model.inv_dt == 0 and i//model.inv_dt < len(decision): # if next day, set policy for the new day
             d_m = decision[i//model.inv_dt]
 
         model.step(action_t = d_m) # run step
@@ -116,12 +116,12 @@ def prep_results_for_java(results, prior_results=None):
         if prior_results != None:
             old1, old3, old4, old5 = prior_results
             temp = {'VSL':old1.append(df1, ignore_index=True),
-                    'Summary':old5.append(df5, ignore_index=True),
+                    'Summary':old5.append(df5.loc[df5['simulated cumulative diagnosis']!=0], ignore_index=True),
                     'Testing':old3.append(df3, ignore_index=True),
                     'Decision Choice':old4.append(df4, ignore_index=True)}
         else:
             temp = {'VSL':df1,
-                    'Summary':df5,
+                    'Summary':df5.loc[df5['simulated cumulative diagnosis']!=0],
                     'Testing':df3,
                     'Decision Choice':df4}                
         temp['Summary']['Date'] = temp['Summary'].index.astype(str)
