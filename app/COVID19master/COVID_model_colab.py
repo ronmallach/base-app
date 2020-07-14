@@ -13,7 +13,7 @@ from math import ceil, floor
 # import ImageMerge as im
 
 from app.COVID19master import global_var as gv
-from app.COVID19master import outputs1 as op
+from app.COVID19master import outputs as op
 
 class CovidModel():
     # def __init__(self):

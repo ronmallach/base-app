@@ -109,25 +109,14 @@ def main_run(state, decision, T_max, uw = 1, costs=[50,50,50], data=None,
 def prep_results_for_java(results, prior_results=None):
     results = copy.deepcopy(results)
     results['is_complete'] = str(results['is_complete'])
-    if results['to_java'] == None:
+    if type(results['to_java']) == type(None):
         results['to_java'] = json.dumps(results['to_java'])
     else:
-        df1, df3, df4, df5 = results['to_java']
-        if prior_results != None:
-            old1, old3, old4, old5 = prior_results
-            temp = {'VSL':old1.append(df1, ignore_index=True),
-                    'Summary':old5.append(df5.loc[df5['simulated cumulative diagnosis']!=0], ignore_index=True),
-                    'Testing':old3.append(df3, ignore_index=True),
-                    'Decision Choice':old4.append(df4, ignore_index=True)}
-        else:
-            temp = {'VSL':df1,
-                    'Summary':df5.loc[df5['simulated cumulative diagnosis']!=0],
-                    'Testing':df3,
-                    'Decision Choice':df4}                
-        temp['Summary']['Date'] = temp['Summary'].index.astype(str)
-        for k,v in temp.items():
-            temp[k].index = temp[k].index.astype(str)
-        results['to_java'] = {k : json.dumps(v.astype(str).to_dict('index')) for k,v in temp.items()}
+        temp = results['to_java']
+        temp = temp.loc[temp['cumulative diagnosis']!=0]
+        if type(prior_results) != type(None):
+            temp = prior_results.append(temp, ignore_index=True)
+        results['to_java'] = json.dumps(temp.astype(str).to_dict('index'))
     results['remaining_decision'] = json.dumps(results['remaining_decision'].tolist())
     results['cost'] = json.dumps(results['cost'])
     results['prop'] = json.dumps(results['prop'])
@@ -140,17 +129,12 @@ def prep_input_for_python(results):
     for plan, instructions in results.items():
         if plan in ['A', 'B', 'C']:
             if instructions['to_java'] != 'null':
-                instructions['to_java'] = [pd.read_json(instructions['to_java']['VSL']).T ,
-                                        #    pd.read_json(instructions['to_java']['Unemployment']).T ,
-                                           pd.read_json(instructions['to_java']['Testing']).T ,
-                                           pd.read_json(instructions['to_java']['Decision Choice']).T ,
-                                           pd.read_json(instructions['to_java']['Summary']).T ]
+                instructions['to_java'] = pd.read_json(instructions['to_java']).T
             else:
                 instructions['to_java'] = None
             instructions['remaining_decision'] = np.array(json.loads(instructions['remaining_decision']))
             instructions['pre_data'] = json.loads(instructions['pre_data'])
             instructions['cost'] = json.loads(instructions['cost'])
-            # instructions['unemp'] = json.loads(instructions['unemp'])
             instructions['prop'] =  json.loads(instructions['prop'])
             results[plan] = instructions
     return results

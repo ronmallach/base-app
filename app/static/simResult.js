@@ -13,8 +13,11 @@ function makeSimLine(parentName, SVG_name, dataType=null, simA=null, simB=null, 
   if (simB != null){maxB = d3.max(simB, d => parseFloat(d[dataType]))}else{maxB=0}
   if (simC != null){maxC = d3.max(simC, d => parseFloat(d[dataType]))}else{maxC=0}
   total_max = Math.max(maxA, maxB, maxC)
-  x = d3.scaleLinear()
-        .domain(d3.extent(simA, d => parseInt(d.Date)))
+  //x = d3.scaleLinear()
+  //      .domain(d3.extent(simA, d => parseInt(d.Date)))
+  //      .range([margin.left, width - margin.right])
+  x = d3.scaleUtc()
+        .domain(d3.extent(simA, d => new Date(d.Date)))
         .range([margin.left, width - margin.right])
   y = d3.scaleLinear()
         .domain([0, total_max])
@@ -31,7 +34,7 @@ function makeSimLine(parentName, SVG_name, dataType=null, simA=null, simB=null, 
 
   svg.append("g")
      .attr("transform", `translate(0,${height - margin.bottom})`)
-     .call(d3.axisBottom(x).ticks(10)) ;
+     .call(d3.axisBottom(x).ticks(5)) ;
 
   svg.append("g")
     .attr("transform", `translate(${margin.left},0)`)
@@ -68,7 +71,8 @@ function makeSimLine(parentName, SVG_name, dataType=null, simA=null, simB=null, 
     if (simA !== null){
       drawSimLine = d3.line()
                      .y(function(d) {return y(parseFloat(d[dataType]))})
-                     .x(function(d) {return x(parseInt(d.Date))})
+                     .x(function(d) {return x(new Date(d.Date))})
+                     //.x(function(d) {return x(parseInt(d.Date))})
 
     const pathA = svg.append("path")
       .datum(simA)
@@ -81,7 +85,8 @@ function makeSimLine(parentName, SVG_name, dataType=null, simA=null, simB=null, 
      if (simB !== null){
        drawSimLine = d3.line()
                        .y(function(d) {return y(parseFloat(d[dataType]))})
-                       .x(function(d) {return x(parseInt(d.Date))})
+                       .x(function(d) {return x(new Date(d.Date))})
+                       //.x(function(d) {return x(parseInt(d.Date))})
 
        const pathB = svg.append("path")
          .datum(simB)
@@ -95,7 +100,8 @@ function makeSimLine(parentName, SVG_name, dataType=null, simA=null, simB=null, 
      if (simC !== null){
        drawSimLine = d3.line()
                        .y(function(d) {return y(parseFloat(d[dataType]))})
-                       .x(function(d) {return x(parseInt(d.Date))})
+                       .x(function(d) {return x(new Date(d.Date))})
+                       //.x(function(d) {return x(parseInt(d.Date))})
 
        const pathC = svg.append("path")
          .datum(simC)
