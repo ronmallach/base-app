@@ -22,7 +22,8 @@ def index():
 def download_newfile():
     path = 'results.xlsx'
     #return send_file(path, attachment_filename='results.xlsx', as_attachment=True)
-    return send_file(path, attachment_filename='work.xlsx', as_attachment=True, cache_timeout=0)
+    return send_file(path, attachment_filename='simulationResults.xlsx',
+                     as_attachment=True, cache_timeout=0)
 
 
 @bp.route('/prep_sim', methods=('GET','POST'))
@@ -45,7 +46,7 @@ def prep_sim():
     # take the partially completed simulation data and prep it.
         results = backend.prep_input_for_python(get)
     heroku = False if len(os.getcwd()) > 25 else True # set the paths
-    max_time = 15 # passed to simulation as the max time to run for
+    max_time = 10 # passed to simulation as the max time to run for
     stop=False # condition to make sure simulation loop does not start another plan
     for plan, instructions in results.items(): # for plan in [A,B,C]
         if type(instructions) == dict:
