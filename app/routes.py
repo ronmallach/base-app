@@ -2,6 +2,7 @@ from flask import (Blueprint, flash, redirect, render_template, request,
                    url_for, jsonify, Response, send_file)
 from app.COVID19master import backend
 import os
+import pandas as pd
 
 
 bp = Blueprint('blueprint', __name__)
@@ -19,8 +20,8 @@ def index():
 
 @bp.route('/input/download_newfile')
 def download_newfile():
-    path = 'policy_example.xlsx'
-    return send_file(path, attachment_filename='new_test.xlsx', as_attachment=True)
+    path = 'results.xlsx'
+    return send_file(path, attachment_filename='results.xlsx', as_attachment=True)
 
 
 @bp.route('/prep_sim', methods=('GET','POST'))
@@ -42,6 +43,8 @@ def prep_sim():
     # else, if this is NOT the first time the prep_sim function is called,
     # take the partially completed simulation data and prep it.
         results = backend.prep_input_for_python(get)
+    print(results.keys())
+    print('B' in results.keys(), 'B in key')
     heroku = False if len(os.getcwd()) > 25 else True # set the paths
     max_time = 15 # passed to simulation as the max time to run for
     stop=False # condition to make sure simulation loop does not start another plan
@@ -70,6 +73,19 @@ def prep_sim():
     # check to see if all plans are simulated
     if all([v['is_complete'] == 'True' for k,v in results.items() if type(v) == dict]):
         status = 'Finished'
+        # Create a Pandas Excel writer using XlsxWriter as the engine.
+        if heroku == False:
+            writer = pd.ExcelWriter('app\\results.xlsx', engine='xlsxwriter')
+        else:
+            writer = pd.ExcelWriter('app/results.xlsx', engine='xlsxwriter')
+        # Write each dataframe to a different worksheet.
+        pd.read_json(results['A']['to_java']).T.to_excel(writer, sheet_name='Plan A')
+        if 'B' in results.keys():
+            print('hello')
+            pd.read_json(results['B']['to_java']).T.to_excel(writer, sheet_name='Plan B')
+        if 'C' in results.keys():
+            pd.read_json(results['C']['to_java']).T.to_excel(writer, sheet_name='Plan C')
+        writer.save()
     else:
         status = 'Not Finished'
     results['status'] = status # set status
