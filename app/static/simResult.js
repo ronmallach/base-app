@@ -1,55 +1,24 @@
-function makeSimLine(parentName, SVG_name, covid_data, state="New York",
-                     dataType='positive', cumulative='cumulative',
-                     simDataType=null, simA=null, simB=null, simC=null){
+function makeSimLine(parentName, SVG_name, dataType=null, simA=null, simB=null, simC=null){
 
   d3.select("#" + SVG_name).remove()
   // clears the data from the last time
   aspectRatio = .33
 
-  title_mapping = {'positive':' Positive Cases - Cumulative',
-                   'positiveIncrease': ' Positive Cases - Daily Increase',
-                   'death':' Deaths - Cumulative',
-                   'deathIncrease': ' Deaths - Daily Increase',
-                   'hospitalized':' Hospitilizations - Cumulative',
-                   'hospitalizedIncrease': ' Hospitilizations - Daily Increase',
-                   'totalTestResults': ' Tests Taken - Cumulative',
-                   'totalTestResultsIncrease': ' Tests Taken - Daily Increase',
-                  }
-
   parentWidth = document.getElementById(parentName).offsetWidth
-  var margin = {top: 30, right: 20, bottom: 20, left: 30},
+  var margin = {top: 15, right: 20, bottom: 20, left: 30},
   height = parentWidth * aspectRatio - margin.top// - margin.bottom
   width = parentWidth - margin.left - margin.right
 
-  data = covid_data.filter(d => d.state == states_hash[state])
-
-  if (cumulative == 'daily'){
-    dataType = dataType + 'Increase'
-  }
-
-  if (simA == null){
-    x = d3.scaleUtc()
-          .domain(d3.extent(data, d => eightToDate(d.date)))
-          .range([margin.left, width - margin.right])
-    y = d3.scaleLinear()
-          .domain([d3.min(data, d => d[dataType]), d3.max(data, d => d[dataType])])
-          .range([height - margin.bottom, margin.top])
-  }else{
-    //x = d3.scaleUtc()
-    //      .domain(d3.extent(simulation, d => new Date(d.Date)))
-    //      .range([margin.left, width - margin.right])
-    if (simA != null){maxA = d3.max(simA, d => parseFloat(d[simDataType]))}else{maxA=0}
-    if (simB != null){maxB = d3.max(simB, d => parseFloat(d[simDataType]))}else{maxB=0}
-    if (simC != null){maxC = d3.max(simC, d => parseFloat(d[simDataType]))}else{maxC=0}
-    total_max = Math.max(maxA, maxB, maxC)
-    x = d3.scaleLinear()
-          .domain(d3.extent(simA, d => parseInt(d.Date)))
-          .range([margin.left, width - margin.right])
-    y = d3.scaleLinear()
-          .domain([0, total_max])
-          .range([height - margin.bottom, margin.top])
-  }
-
+  if (simA != null){maxA = d3.max(simA, d => parseFloat(d[dataType]))}else{maxA=0}
+  if (simB != null){maxB = d3.max(simB, d => parseFloat(d[dataType]))}else{maxB=0}
+  if (simC != null){maxC = d3.max(simC, d => parseFloat(d[dataType]))}else{maxC=0}
+  total_max = Math.max(maxA, maxB, maxC)
+  x = d3.scaleLinear()
+        .domain(d3.extent(simA, d => parseInt(d.Date)))
+        .range([margin.left, width - margin.right])
+  y = d3.scaleLinear()
+        .domain([0, total_max])
+        .range([height - margin.bottom, margin.top])
 
 
   var svg = d3.select("#" + parentName)
@@ -70,7 +39,7 @@ function makeSimLine(parentName, SVG_name, covid_data, state="New York",
             .ticks(5)
           );
 
-    svg.append("g")
+  svg.append("g")
     .attr("stroke", "currentColor")
     .attr("stroke-opacity", 0.1)
     .call(g => g.append("g")
@@ -90,55 +59,28 @@ function makeSimLine(parentName, SVG_name, covid_data, state="New York",
         .attr("x1", margin.left)
         .attr("x2", width - margin.right));
 
-  //drawLine = d3.line()
-  //             .y(function(d) {return y(d[dataType])})
-  //             .x(function(d) {return x(eightToDate(d.date))})
+    svg.append("text")
+      .attr("transform", "translate(" + (width/2) + " ," +  (height + margin.top) + ")")
+      .style("text-anchor", "middle")
+      .style("font-size", "12px")
+      .text("Days Since Start of Simulation");
 
-       // Add the line
-  //svg.append("path")
-  //   .datum(data)
-  //   .attr('class', 'line')
-  //   .attr("fill", "none")
-  //   .attr("stroke", "steelblue")
-  //   .attr("stroke-linejoin", "round")
-  //   .attr("stroke-linecap", "round")
-  //   .attr("stroke-width", 2.25)
-  //   .attr("d", d => drawLine(d))
+    if (simA !== null){
+      drawSimLine = d3.line()
+                     .y(function(d) {return y(parseFloat(d[dataType]))})
+                     .x(function(d) {return x(parseInt(d.Date))})
 
-     if (simA !== null){
-       //drawSimLine = d3.line()
-      //              .y(function(d) {return y(parseFloat(d[simDataType]))})
-      //              .x(function(d) {return x(new Date(d.Date))})
-       drawSimLine = d3.line()
-                       .y(function(d) {return y(parseFloat(d[simDataType]))})
-                       .x(function(d) {return x(parseInt(d.Date))})
-
-       const pathA = svg.append("path")
-         .datum(simA)
-         .attr('class', 'line')
-         .attr("fill", "none")
-         .attr("stroke", "steelblue")
-         .attr("stroke-width", 1.5)
-         .attr("d", d => drawSimLine(d))
-
-        const pathLength = pathA.node().getTotalLength();
-       // D3 provides lots of transition options, have a play around here:
-       // https://github.com/d3/d3-transition
-       const transitionPath = d3
-         .transition()
-         .ease(d3.easeSin)
-         .duration(10000);
-       pathA.attr("stroke-dashoffset", pathLength)
-         .attr("stroke-dasharray", pathLength)
-         .transition(transitionPath)
-         .attr("stroke-dashoffset", 0);
+    const pathA = svg.append("path")
+      .datum(simA)
+      .attr('class', 'line')
+      .attr("fill", "none")
+      .attr("stroke", "steelblue")
+      .attr("stroke-width", 1.5)
+      .attr("d", d => drawSimLine(d))
      }
      if (simB !== null){
-       //drawSimLine = d3.line()
-      //              .y(function(d) {return y(parseFloat(d[simDataType]))})
-      //              .x(function(d) {return x(new Date(d.Date))})
        drawSimLine = d3.line()
-                       .y(function(d) {return y(parseFloat(d[simDataType]))})
+                       .y(function(d) {return y(parseFloat(d[dataType]))})
                        .x(function(d) {return x(parseInt(d.Date))})
 
        const pathB = svg.append("path")
@@ -149,24 +91,10 @@ function makeSimLine(parentName, SVG_name, covid_data, state="New York",
          .attr("stroke-width", 1.5)
          .attr("d", d => drawSimLine(d))
 
-         const pathLength = pathB.node().getTotalLength();
-          // D3 provides lots of transition options, have a play around here:
-          // https://github.com/d3/d3-transition
-          const transitionPath = d3
-            .transition()
-            .ease(d3.easeSin)
-            .duration(10000);
-          pathB.attr("stroke-dashoffset", pathLength)
-            .attr("stroke-dasharray", pathLength)
-            .transition(transitionPath)
-            .attr("stroke-dashoffset", 0);
      }
      if (simC !== null){
-       //drawSimLine = d3.line()
-      //              .y(function(d) {return y(parseFloat(d[simDataType]))})
-      //              .x(function(d) {return x(new Date(d.Date))})
        drawSimLine = d3.line()
-                       .y(function(d) {return y(parseFloat(d[simDataType]))})
+                       .y(function(d) {return y(parseFloat(d[dataType]))})
                        .x(function(d) {return x(parseInt(d.Date))})
 
        const pathC = svg.append("path")
@@ -176,19 +104,8 @@ function makeSimLine(parentName, SVG_name, covid_data, state="New York",
          .attr("stroke", "green")
          .attr("stroke-width", 1.5)
          .attr("d", d => drawSimLine(d))
-
-         const pathLength = pathC.node().getTotalLength();
-        // D3 provides lots of transition options, have a play around here:
-        // https://github.com/d3/d3-transition
-        const transitionPath = d3
-          .transition()
-          .ease(d3.easeSin)
-          .duration(10000);
-        pathC.attr("stroke-dashoffset", pathLength)
-          .attr("stroke-dasharray", pathLength)
-          .transition(transitionPath)
-          .attr("stroke-dashoffset", 0);
      }
+
   // add the title
   svg.append("text")
        .attr("font-family", "sans-serif")
@@ -196,7 +113,7 @@ function makeSimLine(parentName, SVG_name, covid_data, state="New York",
        .attr("x", (width / 2))
        .attr("y", 10 - (margin.top / 2))
        .attr("text-anchor", "middle")
-       .text(title_mapping[dataType]);
+       .text(dataType);
 }
 
 
