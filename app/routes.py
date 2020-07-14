@@ -1,9 +1,9 @@
 from flask import (Blueprint, flash, redirect, render_template, request,
-                   url_for, jsonify, Response, send_file)
+                   url_for, jsonify, Response, send_file, make_response)
 from app.COVID19master import backend
 import os
 import pandas as pd
-
+import xlsxwriter
 
 bp = Blueprint('blueprint', __name__)
 
@@ -18,10 +18,11 @@ def index():
     return render_template('policy_builder.html')
 
 
-@bp.route('/input/download_newfile')
+@bp.route('/download_newfile')
 def download_newfile():
     path = 'results.xlsx'
-    return send_file(path, attachment_filename='results.xlsx', as_attachment=True)
+    #return send_file(path, attachment_filename='results.xlsx', as_attachment=True)
+    return send_file(path, attachment_filename='work.xlsx', as_attachment=True, cache_timeout=0)
 
 
 @bp.route('/prep_sim', methods=('GET','POST'))
@@ -43,8 +44,6 @@ def prep_sim():
     # else, if this is NOT the first time the prep_sim function is called,
     # take the partially completed simulation data and prep it.
         results = backend.prep_input_for_python(get)
-    print(results.keys())
-    print('B' in results.keys(), 'B in key')
     heroku = False if len(os.getcwd()) > 25 else True # set the paths
     max_time = 15 # passed to simulation as the max time to run for
     stop=False # condition to make sure simulation loop does not start another plan
@@ -81,13 +80,14 @@ def prep_sim():
         # Write each dataframe to a different worksheet.
         pd.read_json(results['A']['to_java']).T.to_excel(writer, sheet_name='Plan A')
         if 'B' in results.keys():
-            print('hello')
             pd.read_json(results['B']['to_java']).T.to_excel(writer, sheet_name='Plan B')
         if 'C' in results.keys():
             pd.read_json(results['C']['to_java']).T.to_excel(writer, sheet_name='Plan C')
-        writer.save()
+        writer.save() 
     else:
         status = 'Not Finished'
     results['status'] = status # set status
     results['new'] = 'False' # set status
     return jsonify(status='success', data=results)
+    
+    
