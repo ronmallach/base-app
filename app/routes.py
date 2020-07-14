@@ -1,7 +1,5 @@
 from flask import (Blueprint, flash, redirect, render_template, request,
                    url_for, jsonify, Response, send_file)
-# from app.COVID19master import COVID_model_colab
-# from app.COVID19master import read_policy_mod
 from app.COVID19master import backend
 import os
 
