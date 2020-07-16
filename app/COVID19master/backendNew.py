@@ -14,12 +14,11 @@ def read_ABC(from_java):
             data[plan][name] = array
     plans = ['A', 'B', 'C']
     policies = ['CR', 'MT', 'TT']
-    index = [i for i in range(num_days)]
+    index = [i for i in range(num_days+1)]
     rl_input = {}
     for plan in plans:
         rl_input[plan] = pd.DataFrame(index=index, columns=policies)
         for policy, value in data[plan].items():
-            print(plan, policy, value)
             if policy in policies:
                 if policy in ['MT', 'TT']:
                     value = float(value) / 100
@@ -35,38 +34,29 @@ def main_run(state, decision, T_max, pop_size = 38037, costs=[50,50,50,50],
              heroku=False, max_time=25):
     path = os.getcwd()
     inv_dt = 10                 # insert time steps within each day
-    #init_num_inf = initialInf            # initial number of infected people
-    #trans_prob = 0.249          # transmission probability
-    #pop_size = popSize               # population size
-    #travel_num_inf = 0.5        # number of infected among travelers
-    # test_sensitivity = 0.9      # testing sensitivity
     decision_making_date = pd.Timestamp(2020, 8,24)      # date of starting decision making
     final_simul_end_date = pd.Timestamp(2020, 11,20)   # date of last simulation date
     sim_week = final_simul_end_date.week - decision_making_date.week + 1
     gv.setup_global_variables(state, inv_dt, init_num_inf, decision_making_date.date(),
                               travel_num_inf,sim_week, final_simul_end_date.date(),
                               pop_size, trans_prob, path, heroku=heroku)
-    # gv.md_salary = uw
     gv.test_cost = costs
     # distribution the simulation population by age and gender
-    # gv.total_pop, gv.pop_dist_v = gv.read_pop_dist(state, uw, path = path, heroku = heroku)
     gv.pop_dist_v = gv.read_pop_dist(state, pop_size, path = path, heroku = heroku)
-    # gv.T_max = T_max
     gv.T_max = abs((decision_making_date.date() - final_simul_end_date.date()).days)
     # ^ set gloable variables
     timer, time_start = 0, time.time() # set timer and current time
     model = cov.CovidModel(data=data, heroku=heroku) # establish model
     i = 0 # set loop counter
     d_m = decision[i] # set current policy at time=now
-    # while there time now < time end AND
-    # while timer < max_time AND time_step is at the end of a day (aka no partial days)
     while model.t < model.T_total and (timer < max_time or i % model.inv_dt != 0):
+        # while there time now < time end AND
+        # while timer < max_time AND
+        # while if time_step is at the end of a day (aka no partial days)
         model.t += 1
-        if model.t % 25 == 0: print('t', model.t, np.round(timer, 2))
-        # ^ print progress
+        if model.t % 25 == 0: print('t', model.t, np.round(timer, 2)) # print progress
         if i % model.inv_dt == 0 and i//model.inv_dt < len(decision): # if next day, set policy for the new day
             d_m = decision[i//model.inv_dt]
-
         model.step(action_t = d_m) # run step
         i += 1  # move time
         timer = time.time() - time_start # update timer
@@ -85,21 +75,16 @@ def main_run(state, decision, T_max, pop_size = 38037, costs=[50,50,50,50],
            'self.tot_num_diag': model.tot_num_diag[model.t-mod],
            'self.tot_num_dead': model.tot_num_dead[model.t-mod],
            'self.tot_num_hosp': model.tot_num_hosp[model.t-mod],
-           'self.op_ob.cumulative_cost_plot': model.op_ob.cumulative_cost_plot[model.d],
-           #'self.rate_unemploy': model.rate_unemploy[model.t-mod],
+           'self.op_ob.cumulative_cost_plot': model.op_ob.cumulative_cost_plot[model.d-1],
            'self.next_start_day': date_range[-1].strftime("%m/%d/%Y"),
            'self.t': model.t}
     # get results for graphics on website
-    # output = model.op_ob.write_output(pre_results = gv.pre_results_df,
-    #                                   date_range = date_range,
-    #                                   pre_data = pre_data)
     output = model.op_ob.write_current_results_mod()
     remaining_decision = decision[i//model.inv_dt :]
     # ^ cut the simulation policy for what still needs to be simulated
     is_complete = 'True' if model.T_total - model.t <= 2 else 'False'
+    is_complete = 'True' if len(remaining_decision) == 0 else 'False'
     # ^ check if simulation is done
-    # results = {'pre_data':dic, 'to_java':output, 'remaining_decision':remaining_decision,
-    #            'is_complete':is_complete, 'cost':costs, 'unemp':uw}
     results = {'pre_data':dic, 'to_java':output, 'remaining_decision':remaining_decision,
                'is_complete':is_complete, 'cost':costs, 'pop_size': pop_size,
                'trans_prob':trans_prob, 'travel_num_inf': travel_num_inf,

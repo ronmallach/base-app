@@ -52,7 +52,7 @@ def prep_sim():
     # take the partially completed simulation data and prep it.
         results = backend.prep_input_for_python(get)
     heroku = False if len(os.getcwd()) > 25 else True # set the paths
-    max_time = 10 # passed to simulation as the max time to run for
+    max_time = 20 # passed to simulation as the max time to run for
     stop=False # condition to make sure simulation loop does not start another plan
     for plan, instructions in results.items(): # for plan in [A,B,C]
         if type(instructions) == dict:

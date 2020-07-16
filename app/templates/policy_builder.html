@@ -4,7 +4,7 @@
 
 <div class='w3-container' style="background-color:#34495E; font-size:1vw"  id='everything'>
   <div class='w3-panel  w3-col s3'>
-    <div class='w3-border w3-round w3-blue-grey' style="height:67.5vh">
+    <div class='w3-border w3-round w3-blue-grey' style="height:75vh">
       <h3 class='w3-border-bottom' style='text-align:center'>Simulation Parameters</h3>
       <h4 class='w3-border-top' style='text-align:center'> Timeline</h4>
       <div class='w3-row'>
@@ -27,7 +27,7 @@
         </div>
         <div class='w3-row'>
           <div class='w3-col s8'>Outside Infections(RENAME):</div>
-          <input id=outsideInfections class='w3-round w3-col s4' type=number value=500></input>
+          <input id=outsideInfections class='w3-round w3-col s4' type=number value=10></input>
         </div>
       </div>
       <h4 class='w3-border-top' style='text-align:center'> Unit Costs (Per Person)</h4>
@@ -53,8 +53,7 @@
         </div>
       </div>
     </div>
-    <div class='w3-border w3-panel w3-round w3-blue-grey' style="height:15vh">
-      <div><button class='w3-button w3-green w3-round w3-border w3-container w3-col s12' onclick="switchTab('goReview', 'reviewTab')" style='height:7vh'>Review Policies</button></div>
+    <div class='w3-border w3-panel w3-round w3-blue-grey' style="height:7.5vh">
       <div><button class='w3-button w3-red w3-round w3-border w3-container w3-col s12' onclick='start_sim()' style='height:7vh'>Run Simulation</button></div>
     </div>
   </div>
@@ -80,13 +79,17 @@
           </div>
           <div class='w3-row w3-border'>
             <h3 style='text-align:center'> Definitions </h3>
-            <p> Contact Rate - Average number of contacts per person per day </p>
-            <p> Mass Testing - Percent of the population to test per day </p>
-            <p> Trace & Test - Rate at which asymptomatic persons are diagnosed, equivalent to inverse of days from exposure to dianosis </p>
-            <p> Transmission Risk - </p>
+            <p class='w3-col s3'> Contact Rate: </p>
+            <p class='w3-col s9'> Average number of contacts per person per day </p>
+            <p class='w3-col s3'> Mass Testing: </p>
+            <p class='w3-col s9'> Percent of the population to test per day </p>
+            <p class='w3-col s3'> Trace & Test: </p>
+            <p class='w3-col s9'> Rate at which asymptomatic persons are diagnosed, equivalent to inverse of days from exposure to dianosis</p>
+            <p class='w3-col s3'> Transmission Risk: </p>
+            <p class='w3-col s9'> Definition coming... </p>
           </div>
           <div class='w3-row'>
-            <p class='w3-col s12'> For more information: Follow the links at the bottom of this page</p>
+            <p class='w3-col s12'> Follow the links below for more information</p>
           </div>
         </div>
       </div>
@@ -234,25 +237,30 @@
       </div>
       <div id=simRunning style='display:none'>
         <div>
-          <h3> The simulator is currently running...  Estimated Time is about ~ <i id=timeToComp>5</i> seconds per scenario</h3>
-          <p style='text-align:center'><i class="fa fa-spinner w3-spin" style="font-size:100px"></i></p>
-          <h2> Progress </h2>
-          <div id=holdProgA class="w3-light-grey" style='display:none'>
-            <div id=progA class="w3-container w3-blue w3-center" style="width:20%">Plan A: 0%</div>
-          </div><br>
-          <div id=holdProgB class="w3-light-grey" style='display:none'>
-            <div id=progB class="w3-container w3-red w3-center" style="width:20%">Plan B: 0%</div>
-          </div><br>
-          <div id=holdProgC class="w3-light-grey" style='display:none'>
-            <div id=progC class="w3-container w3-green" style="width:20%">Plac C: 0%</div>
-          </div><br>
-          <h3> DO NOT LEAVE THIS PAGE while the simulation is running </h3>
-          <h3> Results will be updated below every 15 seconds until the simulation has completed</h3>
+          <h3> The simulator is currently running... DO NOT LEAVE THIS PAGE </h3>
+          <div class='w3-row'>
+            <div class='w3-col s9'>
+              <h2 style='text-align:center'> Progress </h2>
+              <div id=holdProgA class="w3-light-grey" style='display:none'>
+                <div id=progA class="w3-container w3-blue w3-center" style="width:20%">Plan A: 0%</div>
+              </div><br>
+              <div id=holdProgB class="w3-light-grey" style='display:none'>
+                <div id=progB class="w3-container w3-red w3-center" style="width:20%">Plan B: 0%</div>
+              </div><br>
+              <div id=holdProgC class="w3-light-grey" style='display:none'>
+                <div id=progC class="w3-container w3-green" style="width:20%">Plac C: 0%</div>
+              </div><br>
+            </div>
+            <div class='w3-col s3'>
+              <p style='vertical-align:center; text-align:center'><i class="fa fa-spinner w3-spin" style="font-size:150px"></i></p>
+            </div>
+          </div>
+          <h3> Results + Progress will be updated below every 20 seconds</h3>
           <h3> Once the simulation is completed, these messages will dissapear</h3>
         </div>
       </div>
       <div id=simCompleted style='display:none'>
-        <h3> Simulation Completed,  <a href="{{ url_for('blueprint.download_newfile') }}">Download Excel File With Results (Not Functional Yet) </a></h3>
+        <h3> Simulation Completed,  <a href="{{ url_for('blueprint.download_newfile') }}">Download Excel File With Results</a></h3>
       </div>
       <div class='w3-col s6' style='height:60vh'>
         <div class='w3-border w3-light-grey' id=graphHospital></div>
@@ -269,7 +277,6 @@
       </div>
     </div>
   </div>
-
 </div>
 
 <script>
@@ -355,7 +362,6 @@ function start_sim(to_python=null){
   document.getElementById('simRunning').style.display = 'block'
   document.getElementById('simCompleted').style.display='none'
   switchTab('goResult', 'simResultGraphs')
-  document.getElementById('timeToComp').innerHTML = 33
   if (to_python == null){
     reset_progress_bar()
     to_python = data_for_sim()
