@@ -8,8 +8,8 @@ import os
 
 
 def setup_global_variables(state, inv_dt1, num_inf1, decision_making_date,
-                           travel_num_inf1, test_sensitivity1, sim_week1, #unif1,
-                           final_simul_start_date1, path, heroku = False):
+                           travel_num_inf1, sim_week1, final_simul_end_date1,
+                           pop_size1, trans_prob1, path, heroku = False):
     ##### do not change ######
     global tot_risk
     tot_risk = 2
@@ -70,63 +70,25 @@ def setup_global_variables(state, inv_dt1, num_inf1, decision_making_date,
     global diag_indices
     diag_indices = diag_indices_loc(Q)
 
-    ###### read date related result ##########
-    """date_result = read_date(state = enter_state)
-    final_simul_start_date = date_result[0]
-
-    global begin_decision_date
-    begin_decision_date = date_result[2]
-
-    global days_of_simul_pre_sd
-    days_of_simul_pre_sd = date_result[3]
-
-    global days_of_simul_post_sd
-    days_of_simul_post_sd = date_result[4]
-
-    global dry_run_end_diag
-    dry_run_end_diag = date_result[5]
-
-    global actual_data
-    actual_data = date_result[6]
-    """
     ##### read RL input #######
     # rl_result = read_RL_inputs(state = enter_state, start_sim_date = final_simul_start_date)
     rl_result = read_RL_inputs(state = enter_state, path=path, heroku=heroku)
     global VSL
     VSL = rl_result#[0]
 
-
-    """global lab_for
-    lab_for = rl_result[1]
-
-    global K_val
-    K_val = rl_result[2]
-
-    global A_val
-    A_val = rl_result[3]
-
-    global duration_unemployment
-    duration_unemployment = rl_result[4]
-
-    global init_unemploy
-    init_unemploy = rl_result[5]
-
-    global acutal_unemp
-    acutal_unemp = rl_result[6]
-
-    global pre_results_dict
-    global pre_results_df
-    pre_results_dict, pre_results_df = read_pre_results(state)"""
-
     global T_max
-
-    # global md_salary
 
     global test_cost
 
     global pop_dist_v
+    # pop_dist_v = read_pop_dist(state, pop_size1, path = path, heroku = heroku)
+
     global total_pop
-    total_pop, pop_dist_v = read_pop_dist(state, prop=1, path = path, heroku = heroku)
+    total_pop = pop_size1
+
+    # global pop_dist_v
+    # global total_pop
+    # total_pop, pop_dist_v = read_pop_dist(state, prop=1, path = path, heroku = heroku)
 
     global day_decison_making
     day_decison_making = decision_making_date
@@ -134,19 +96,20 @@ def setup_global_variables(state, inv_dt1, num_inf1, decision_making_date,
     global travel_num_inf
     travel_num_inf = travel_num_inf1
 
+    global trans_prob
+    trans_prob = trans_prob1
+
     global SAR
+    SAR = -8.5806 * np.power(trans_prob,2) + 3.4568 * trans_prob + 0.0312
 
     global test_sensitivity
-    test_sensitivity = test_sensitivity1
+    test_sensitivity = 0.9
 
     global sim_week
     sim_week = sim_week1
 
-    #global unif
-    #unif = unif1
-
-    global final_simul_start_date
-    final_simul_start_date = final_simul_start_date1
+    global final_simul_end_date
+    final_simul_end_date = final_simul_end_date1
 
     # global pre_results_dict
     # global pre_results_df
@@ -180,7 +143,7 @@ def setup_global_variables(state, inv_dt1, num_inf1, decision_making_date,
 
 # Function to read population distribution by State /university
 # Distribute age to a certain propotion of the total population
-def read_pop_dist(state, prop, path, heroku = False):
+def read_pop_dist(state, pop_size, path, heroku = False):
     print(path)
     print(heroku)
     # excel = pathlib.Path('data/age_dist_univ.xlsx')
@@ -188,25 +151,31 @@ def read_pop_dist(state, prop, path, heroku = False):
         excel =  os.path.join(path,'app\\COVID19master\\data\\age_dist_univ.xlsx')
     else:
         excel = os.path.join(path,'app/COVID19master/data/age_dist_univ.xlsx')
-
-    pop_dist = pd.read_excel(excel, sheet_name = state, index_col = 0)
-    total_pop = pop_dist.sum().sum()
-    total_pop_mod = total_pop * prop
-    age_dist = pop_dist/total_pop
-    pop_dist_mod = total_pop_mod * age_dist
-    # travel_dist = 0.1 * pop_dist_mod   # 10 percent of total population
-
+    age_dist = pd.read_excel(excel, sheet_name = state, index_col = 0)
+    pop_dist_mod = pop_size * age_dist
     pop_dist_mod['age'] = pop_dist_mod.index
     pop_dist_mod = pop_dist_mod[['age', 'female', 'male']]
-
-    # travel_dist['age'] = travel_dist.index
-    # travel_dist = travel_dist[['age', 'female', 'male']]
-
     pop_dist_mod_v = pop_dist_mod.values
-    # travel_dist_v = travel_dist.values
+    return pop_dist_mod_v
 
-    # return total_pop_mod, pop_dist_mod_v, travel_dist_v
-    return total_pop_mod, pop_dist_mod_v
+    # pop_dist = pd.read_excel(excel, sheet_name = state, index_col = 0)
+    # total_pop = pop_dist.sum().sum()
+    # total_pop_mod = total_pop * prop
+    # age_dist = pop_dist/total_pop
+    # pop_dist_mod = total_pop_mod * age_dist
+    # # travel_dist = 0.1 * pop_dist_mod   # 10 percent of total population
+
+    # pop_dist_mod['age'] = pop_dist_mod.index
+    # pop_dist_mod = pop_dist_mod[['age', 'female', 'male']]
+
+    # # travel_dist['age'] = travel_dist.index
+    # # travel_dist = travel_dist[['age', 'female', 'male']]
+
+    # pop_dist_mod_v = pop_dist_mod.values
+    # # travel_dist_v = travel_dist.values
+
+    # # return total_pop_mod, pop_dist_mod_v, travel_dist_v
+    # return total_pop_mod, pop_dist_mod_v
 
 
 # Function to read simulation related parameters

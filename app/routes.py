@@ -1,6 +1,6 @@
 from flask import (Blueprint, flash, redirect, render_template, request,
                    url_for, jsonify, Response, send_file, make_response)
-from app.COVID19master import backend
+from app.COVID19master import backendNew as backend
 import os
 import pandas as pd
 import xlsxwriter
@@ -32,7 +32,6 @@ def prep_sim():
     # if this is the first time the simulation is being run through, prep the
     # data from the front end... see line 91 where this is set as False.
     if get['new'] == 'True':
-        print([int(cost) for cost in get['cost']])
         rl_input = backend.read_ABC(get)
         # transform user inputs... will return
         results = {plan:{'is_complete':'False',
@@ -40,7 +39,14 @@ def prep_sim():
                          'to_java':None,
                          'pre_data':None,
                          'cost':[int(cost) for cost in get['cost']],
-                         'prop':int(get['UW'])} for plan, decision in rl_input.items()}
+                         'pop_size':int(get['popSize']),
+                         'init_num_inf':int(get['initialInfection']),
+                         'travel_num_inf':float(get['outsideInfection']),
+                         'startSim': get['start'],
+                         'endSim':get['end'],
+                         'state':get['state'],
+                         'trans_prob':float(get['policy']['TR'][plan]) / 100}
+                   for plan, decision in rl_input.items()}
     else:
     # else, if this is NOT the first time the prep_sim function is called,
     # take the partially completed simulation data and prep it.
@@ -53,16 +59,20 @@ def prep_sim():
             # if simulation isn't done, and stop condition not set yet
             if instructions['is_complete'] == 'False' and stop == False:
                 decision = instructions['remaining_decision']
-                T_max = decision.shape[0]
-                data = instructions['to_java']
-                pre_data = instructions['pre_data']
-                costs = instructions['cost']
-                uw = instructions['prop']
-                # ^ make parameters
-                output = backend.main_run(state='UMASS', decision=decision,
-                                          uw=1, costs=costs, T_max=T_max,
-                                          data=pre_data, pre_data=data,
-                                          heroku=heroku, max_time=max_time)
+                output = backend.main_run(state=instructions['state'],
+                                          decision = decision,
+                                          T_max = decision.shape[0],
+                                          pop_size = instructions['pop_size'],
+                                          costs = instructions['cost'],
+                                          init_num_inf =instructions['init_num_inf'],
+                                          travel_num_inf =instructions['travel_num_inf'],
+                                          startSim = instructions['startSim'],
+                                          endSim = instructions['endSim'],
+                                          trans_prob = instructions['trans_prob'],
+                                          data=instructions['pre_data'],
+                                          pre_data=instructions['to_java'],
+                                          heroku=heroku,
+                                          max_time=max_time)
                 # ^ run simulation... will end after 15 seconds, or if simulation
                 # of current plan is completed
                 stop = True # set stop conditions

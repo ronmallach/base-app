@@ -3,32 +3,7 @@ import pandas as pd
 import time, os, json, copy
 
 from app.COVID19master import global_varNew as gv
-from app.COVID19master import COVID_model_colab as cov
-
-def read_ABC_OLD(from_java):
-    data = {'Date':{}, 'A':{}, 'B':{}, 'C':{}}
-    policies = from_java['policy']
-    for name, policy in policies.items():
-        for plan, array in policy.items():
-            data[plan][name] = array
-    plans = ['A', 'B', 'C']
-    policies = ['CR', 'CT', 'UT']
-    dates = data['Date']['CT'] # hard coded
-    days_per_tp = 7
-    index = [0] + [i for i in dates for j in range(days_per_tp)]
-    rl_input = {}
-    for plan in plans:
-        rl_input[plan] = pd.DataFrame(index=index, columns=policies)
-        for policy, changes in data[plan].items():
-            to_rl = [0]
-            for change in changes:
-                to_rl += [change] * days_per_tp
-            rl_input[plan][policy] = to_rl
-        rl_input[plan].iloc[0] = rl_input[plan].iloc[1].values
-        rl_input[plan] = rl_input[plan].values
-        if np.sum(rl_input[plan]==0) == len(rl_input[plan])*3:
-            rl_input.pop(plan)
-    return rl_input
+from app.COVID19master import COVID_model_colabNew as cov
 
 def read_ABC(from_java):
     data = {'A':{}, 'B':{}, 'C':{}}
@@ -44,37 +19,40 @@ def read_ABC(from_java):
     for plan in plans:
         rl_input[plan] = pd.DataFrame(index=index, columns=policies)
         for policy, value in data[plan].items():
+            print(plan, policy, value)
             if policy in policies:
-                rl_input[plan][policy] = value
-            rl_input[plan] = rl_input[plan].values
+                if policy in ['MT', 'TT']:
+                    value = float(value) / 100
+                rl_input[plan][policy] = [float(value) for i in index]
+        rl_input[plan] = rl_input[plan].values
     return rl_input
 
 
-
 # Funtion for one scenario analysis
-def main_run(state, decision, T_max, popSize = 38037, costs=[50,50,50,50],
-             inital_inf = 0, outside_inf = 0, transRisk, startSim = '2020-08-24', 
-             endSim = '2020-11-20', data=None, pre_data = None,
+def main_run(state, decision, T_max, pop_size = 38037, costs=[50,50,50,50],
+             init_num_inf = 0, travel_num_inf = 0.5, startSim = '2020-08-24', 
+             endSim = '2020-11-20', trans_prob=0.249, data=None, pre_data = None,
              heroku=False, max_time=25):
     path = os.getcwd()
     inv_dt = 10                 # insert time steps within each day
-    init_num_inf = 4            # initial number of infected people
-    # prop = 1                    # proportion of the total population
-    travel_num_inf = 0.5        # number of infected among travelers
-    #test_sensitivity = 0.9      # testing sensitivity
-    unif = 'N'
+    #init_num_inf = initialInf            # initial number of infected people
+    #trans_prob = 0.249          # transmission probability
+    #pop_size = popSize               # population size
+    #travel_num_inf = 0.5        # number of infected among travelers
+    # test_sensitivity = 0.9      # testing sensitivity
     decision_making_date = pd.Timestamp(2020, 8,24)      # date of starting decision making
-    final_simul_start_date = pd.Timestamp(2020, 11,20)   # date of last simulation date
-    sim_week = final_simul_start_date.week - decision_making_date.week + 1
+    final_simul_end_date = pd.Timestamp(2020, 11,20)   # date of last simulation date
+    sim_week = final_simul_end_date.week - decision_making_date.week + 1
     gv.setup_global_variables(state, inv_dt, init_num_inf, decision_making_date.date(),
-                              travel_num_inf, sim_week, #unif,
-                              final_simul_start_date.date(), path, heroku=heroku)
+                              travel_num_inf,sim_week, final_simul_end_date.date(),
+                              pop_size, trans_prob, path, heroku=heroku)
     # gv.md_salary = uw
     gv.test_cost = costs
     # distribution the simulation population by age and gender
-    gv.total_pop, gv.pop_dist_v = gv.read_pop_dist(state, uw, path = path, heroku = heroku)
+    # gv.total_pop, gv.pop_dist_v = gv.read_pop_dist(state, uw, path = path, heroku = heroku)
+    gv.pop_dist_v = gv.read_pop_dist(state, pop_size, path = path, heroku = heroku)
     # gv.T_max = T_max
-    gv.T_max = abs((decision_making_date.date() - final_simul_start_date.date()).days)
+    gv.T_max = abs((decision_making_date.date() - final_simul_end_date.date()).days)
     # ^ set gloable variables
     timer, time_start = 0, time.time() # set timer and current time
     model = cov.CovidModel(data=data, heroku=heroku) # establish model
@@ -107,7 +85,7 @@ def main_run(state, decision, T_max, popSize = 38037, costs=[50,50,50,50],
            'self.tot_num_diag': model.tot_num_diag[model.t-mod],
            'self.tot_num_dead': model.tot_num_dead[model.t-mod],
            'self.tot_num_hosp': model.tot_num_hosp[model.t-mod],
-           'self.op_ob.cumulative_cost_plot[0]': model.op_ob.cumulative_cost_plot[model.d],
+           'self.op_ob.cumulative_cost_plot': model.op_ob.cumulative_cost_plot[model.d],
            #'self.rate_unemploy': model.rate_unemploy[model.t-mod],
            'self.next_start_day': date_range[-1].strftime("%m/%d/%Y"),
            'self.t': model.t}
@@ -123,29 +101,38 @@ def main_run(state, decision, T_max, popSize = 38037, costs=[50,50,50,50],
     # results = {'pre_data':dic, 'to_java':output, 'remaining_decision':remaining_decision,
     #            'is_complete':is_complete, 'cost':costs, 'unemp':uw}
     results = {'pre_data':dic, 'to_java':output, 'remaining_decision':remaining_decision,
-               'is_complete':is_complete, 'cost':costs, 'prop': uw}
+               'is_complete':is_complete, 'cost':costs, 'pop_size': pop_size,
+               'trans_prob':trans_prob, 'travel_num_inf': travel_num_inf,
+               'init_num_inf':init_num_inf, 'state':state, 'startSim':startSim,
+               'endSim':endSim}
     results = prep_results_for_java(results, pre_data)
     # ^^ prep results for java
     return results
 
 
 def prep_results_for_java(results, prior_results=None):
+    print(results.keys())
     results = copy.deepcopy(results)
     results['is_complete'] = str(results['is_complete'])
     if type(results['to_java']) == type(None):
         results['to_java'] = json.dumps(results['to_java'])
     else:
         temp = results['to_java']
-        temp = temp.loc[temp['cumulative diagnosis']!=0]
+        temp = temp.loc[temp['Cumulative diagnosis']!=0]
         if type(prior_results) != type(None):
             temp = prior_results.append(temp, ignore_index=True)
         results['to_java'] = json.dumps(temp.astype(str).to_dict('index'))
     results['remaining_decision'] = json.dumps(results['remaining_decision'].tolist())
     results['cost'] = json.dumps(results['cost'])
-    results['prop'] = json.dumps(results['prop'])
+    results['pop_size'] = json.dumps(results['pop_size'])
+    results['trans_prob'] = json.dumps(results['trans_prob'])
+    results['init_num_inf'] = json.dumps(results['init_num_inf'])
+    results['travel_num_inf'] = json.dumps(results['travel_num_inf'])
+    results['state'] = json.dumps(results['state'])
+    results['startSim'] = json.dumps(results['startSim'])
+    results['endSim'] = json.dumps(results['endSim'])
     results['pre_data'] = json.dumps(results['pre_data'])
     return results
-
 
 def prep_input_for_python(results):
     results = copy.deepcopy(results)
@@ -158,6 +145,12 @@ def prep_input_for_python(results):
             instructions['remaining_decision'] = np.array(json.loads(instructions['remaining_decision']))
             instructions['pre_data'] = json.loads(instructions['pre_data'])
             instructions['cost'] = json.loads(instructions['cost'])
-            instructions['prop'] =  json.loads(instructions['prop'])
-            results[plan] = instructions
+            instructions['pop_size'] = json.loads(instructions['pop_size'])
+            instructions['trans_prob'] = json.loads(instructions['trans_prob'])
+            instructions['init_num_inf'] = json.loads(instructions['init_num_inf'])
+            instructions['travel_num_inf'] = json.loads(instructions['travel_num_inf'])
+            instructions['state'] = json.loads(instructions['state'])
+            instructions['endSim'] = json.loads(instructions['endSim'])
+            instructions['startSim'] = json.loads(instructions['startSim'])
+            #instructions[plan] = instructions
     return results
