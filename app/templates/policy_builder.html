@@ -4,7 +4,7 @@
 
 <div class='w3-container' style="background-color:#34495E; font-size:1vw"  id='everything'>
   <div class='w3-panel  w3-col s3'>
-    <div class='w3-border w3-round  w3-blue-grey' style='height:75vh; overflow-y:scroll; font-size:.75vw'>
+    <div class='w3-border w3-round  w3-blue-grey' style='height:75vh; overflow-y:scroll; font-size:.66vw'>
       <h2 style='text-align:center; margin-bottom:0px'><u>Introduction & Guide</u></h2>
       <div class='w3-row'>
         <p class='w3-col s12'> This is a simulation tool for evaluation of epidemic
@@ -14,14 +14,14 @@
       </div>
       <div class='w3-row w3-border'>
         <h3 style='text-align:center'> Descriptions <br>(Inital Population Data) </h3>
-        <p class='w3-col s3'> Initial infections: </p>
-        <p class='w3-col s9'>  Expected number of persons with undiagnosed infection on day 1 of reopening </p>
-        <p class='w3-col s3'> Infections from outside contacts (per day): </p>
-        <p class='w3-col s9'> Expected number of infections through contacts with
+        <p class='w3-col s4'> Initial infections: </p>
+        <p class='w3-col s8'>  Expected number of persons with undiagnosed infection on day 1 of reopening </p>
+        <p class='w3-col s4'> Infections from outside contacts (per day): </p>
+        <p class='w3-col s8'> Expected number of infections through contacts with
                               persons from outside the university population over
                                the duration of the semester (per day) </p>
-        <p class='w3-col s3'> Unit costs: </p>
-        <p class='w3-col s9'>  Cost per person (could include costs of equipment, infrastructure, personnel, etc.) </p>
+        <p class='w3-col s4'> Unit costs: </p>
+        <p class='w3-col s8'>  Cost per person (could include costs of equipment, infrastructure, personnel, etc.) </p>
         <p class='w3-col s12'> (Assumption: we assume persons diagnosed with infection are quarantined and isolated)</p>
       </div>
       <div class='w3-row w3-border'>
@@ -118,7 +118,7 @@
           <h3 style='text-align:center'>Plan A</h3>
           <div class=w3-row>
             <div class='w3-row'>
-              <div id=TRaLabel class='w3-col s5'>Tramsission Risk (%): </div>
+              <div id=TRaLabel class='w3-col s5'>Transmission Risk (%): </div>
               <div class="w3-col s5">
                 1 <input id=TRa type="range" min="1" max="17" value="3" class="slider" onchange='updateSliderOverview()'>17
               </div>
@@ -185,7 +185,7 @@
           <h3 style='text-align:center'>Plan C</h3>
           <div id=holdPlanC class='w3-border-bottom'>
             <div class='w3-row'>
-              <div id=TRcLabel class='w3-col s5'>Tramsission Risk (%): </div>
+              <div id=TRcLabel class='w3-col s5'>Transmission Risk (%): </div>
               <div class="w3-col s5">
                 1 <input id=TRc type="range" min="1" max="17" value="14" class="slider" onchange='updateSliderOverview()'>17
               </div>

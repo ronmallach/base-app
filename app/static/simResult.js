@@ -112,6 +112,14 @@ function makeSimLine(parentName, SVG_name, dataType=null, simA=null, simB=null, 
          .attr("d", d => drawSimLine(d))
      }
 
+    if (dataType == 'Number of quarantined (per day)(with 0% false positives)'){
+      title = 'Number of quarantines (onlty true positives)'
+    } else if (dataType == 'Cumulative cost'){
+      title = 'Cumulative cost ($, Millions)'
+    } else {
+      title = dataType
+    }
+
   // add the title
   svg.append("text")
        .attr("font-family", "sans-serif")
@@ -119,7 +127,7 @@ function makeSimLine(parentName, SVG_name, dataType=null, simA=null, simB=null, 
        .attr("x", (width / 2))
        .attr("y", 10 - (margin.top / 2))
        .attr("text-anchor", "middle")
-       .text(dataType);
+       .text(title);
 }
 
 
