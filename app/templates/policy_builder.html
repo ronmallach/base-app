@@ -401,6 +401,7 @@ function start_sim(to_python=null){
         contentType: "application/json",
         success: function (dataset) {
           all_data = dataset.data;
+          console.log(all_data)
           simA = to_object(all_data['A']['to_java'], 'A')
           console.log(simA)
           if (all_data['B']==undefined){simB=null}else{simB=to_object(all_data['B']['to_java'], 'B')}

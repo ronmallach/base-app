@@ -80,12 +80,15 @@ def prep_sim():
     # check to see if all plans are simulated
     if all([v['is_complete'] == 'True' for k,v in results.items() if type(v) == dict]):
         status = 'Finished'
+        inputs = backend.prep_input_excel(results)
+        print(inputs)
         # Create a Pandas Excel writer using XlsxWriter as the engine.
         if heroku == False:
             writer = pd.ExcelWriter('app\\results.xlsx', engine='xlsxwriter')
         else:
             writer = pd.ExcelWriter('app/results.xlsx', engine='xlsxwriter')
         # Write each dataframe to a different worksheet.
+        inputs.to_excel(writer, sheet_name='Simulation Inputs')
         pd.read_json(results['A']['to_java']).T.to_excel(writer, sheet_name='Plan A')
         if 'B' in results.keys():
             pd.read_json(results['B']['to_java']).T.to_excel(writer, sheet_name='Plan B')

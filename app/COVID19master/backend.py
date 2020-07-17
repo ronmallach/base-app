@@ -139,3 +139,24 @@ def prep_input_for_python(results):
             instructions['startSim'] = json.loads(instructions['startSim'])
             #instructions[plan] = instructions
     return results
+
+def prep_input_excel(results):
+    dont_include = ['to_java', 'remaining_decision', 'is_complete', 'pre_data']
+    cost_name = {0: 'Cost of Sympton-Based Test (Per Person', 1:'Cost of Trace and Test (Per Person)',
+                 2: 'Cost of Mass Test (Per Person)', 3:'Cost of Quarentine (Per Day)',
+                 4:'Cost of Quarentine (Per Day)'}
+    to_excel = {}
+    for key, plan in results.items():
+        if key in ['A', 'B', 'C']:
+            to_excel[key] = {}
+            for point, value in plan.items():
+                if point not in dont_include:
+                    if point == 'cost':
+                        value = json.loads(value)
+                        for i, cost in enumerate(value):
+                            print(i, cost)
+                            to_excel[key][cost_name[i]] = cost
+                    else:
+                        to_excel[key][point] = value
+    to_excel = pd.DataFrame.from_dict(to_excel)
+    return to_excel
