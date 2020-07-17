@@ -46,9 +46,9 @@ class CovidModel():
         self.ir_days = self.input_list_const.loc['Days_IR', 'value']       # time from onset of symptoms to recovery
         self.qih_days = self.input_list_const.loc['Days_QiH', 'value']     # time from onset of symptoms to hospitalization
         self.qir_days = self.input_list_const.loc['Days_QiR', 'value']     # time from diagnosis to recovery
-        self.second_attack_rate = self.input_list_const.loc['Second_attack', 'value']/100   # second attack rate
-        # self.second_attack_rate = gv.SAR                                   # second attack rate
-        self.transmission_prob = self.input_list_const.loc['Trans_prob', 'value']
+
+        self.second_attack_rate = gv.SAR                                   # second attack rate
+        self.transmission_prob = gv.trans_prob                             # transmission probability
         self.hosp_scale = gv.hosp_scale                                    # hospitalization scale factor
         self.dead_scale = gv.dead_scale                                    # death scale factor
 
@@ -60,8 +60,8 @@ class CovidModel():
         self.test_sensitivity = gv.test_sensitivity                                 # testing sensitivity
         self.travel_num_inf_per_day = gv.travel_num_inf             # number of travel related infection per day
         self.sim_week  = gv.sim_week                                # total simulation week
-        self.final_simul_end_date = gv.final_simul_start_date         # final simulation end date
-        self.unif = gv.unif                                         # whether uniformly distribute travel related infection
+        self.final_simul_end_date = gv.final_simul_end_date         # final simulation end date
+        # self.unif = gv.unif                                         # whether uniformly distribute travel related infection
         self.init_num_inf = gv.init_num_inf                         # intial number of infected
 
         # self.decision_making_day = pd.Timestamp.today().date()
@@ -173,7 +173,7 @@ class CovidModel():
                 self.op_ob.num_quarantined_plot[self.d] = np.sum(self.op_ob.num_inf_plot[:self.d + 1])
             else:
                 self.op_ob.num_quarantined_plot[self.d] = np.sum(self.op_ob.num_inf_plot[(self.d -13) : (self.d + 1)])
-
+            self.op_ob.cumulative_cost_plot[self.d] =  self.op_ob.cumulative_cost_plot[self.d - 1] + self.op_ob.tot_test_cost_plot[self.d] + self.op_ob.num_quarantined_plot[self.d] * self.cost_tst[3]
             self.d += 1 # update day
 
     # Function to convert action
@@ -196,7 +196,7 @@ class CovidModel():
     # Input parameter:
     # action_t = a NumPy array of size [1x3] with the values output by the RL model (a_sd, T_c, T_u)
     def set_action(self, action_t):
-        self.a_sd = action_t[0] * self.transmission_prob
+        self.a_sd = action_t[0]
         self.T_c = action_t[1]
         self.T_u = action_t[2]
         self.a_u = self.T_u / np.sum(self.pop_dist_sim[(self.t - 1),:,:,0:4])
@@ -254,8 +254,8 @@ class CovidModel():
                             self.num_new_inf[self.t][risk][age] += 1
 
     # Function to distribute number of travel-related infection
-    def dist_travel_num_inf(self):
-        if self.unif == 'Y':
+    def dist_travel_num_inf(self, unif = 'N'):
+        if unif == 'Y':
             self.travel_inf_inv = int(1/self.travel_num_inf_per_day)
 
         else:
@@ -296,7 +296,7 @@ class CovidModel():
     def set_rate_array(self):
 
         # rate of S -> L
-        beta_sd = self.a_sd
+        beta_sd = self.a_sd * self.transmission_prob
         # beta_sd = self.beta_min + (1 - self.a_sd) * (self.beta_max - self.beta_min) ### modify this equation to take beta value
         self.rate_array[0] = (beta_sd * np.sum(self.pop_dist_sim[(self.t - 1),\
                               :,:,2:4]))/(np.sum(self.pop_dist_sim[(self.t - 1), :,:,0:9]))
@@ -519,6 +519,7 @@ class CovidModel():
         self.tot_num_diag[0] = self.pre_results['self.tot_num_diag']
         self.tot_num_dead[0] = self.pre_results['self.tot_num_dead']
         self.tot_num_hosp[0] = self.pre_results['self.tot_num_hosp']
+        self.op_ob.cumulative_cost_plot[0] = self.pre_results['self.op_ob.cumulative_cost_plot']
 
 
 

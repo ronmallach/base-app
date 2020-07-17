@@ -746,7 +746,7 @@ function makeSimLine(parentName, SVG_name, dataType=null, simA=null, simB=null, 
       .attr("transform", "translate(" + (width/2) + " ," +  (height + margin.top) + ")")
       .style("text-anchor", "middle")
       .style("font-size", "12px")
-      .text("Days Since Start of Simulation");
+      .text("Date");
 
     if (simA !== null){
       drawSimLine = d3.line()
@@ -795,7 +795,7 @@ function makeSimLine(parentName, SVG_name, dataType=null, simA=null, simB=null, 
   // add the title
   svg.append("text")
        .attr("font-family", "sans-serif")
-       .attr("font-size", 18)
+       .attr("font-size", 14)
        .attr("x", (width / 2))
        .attr("y", 10 - (margin.top / 2))
        .attr("text-anchor", "middle")

@@ -1,6 +1,6 @@
 from flask import (Blueprint, flash, redirect, render_template, request,
                    url_for, jsonify, Response, send_file, make_response)
-from app.COVID19master import backendNew as backend
+from app.COVID19master import backend
 import os
 import pandas as pd
 import xlsxwriter
@@ -8,13 +8,10 @@ import xlsxwriter
 bp = Blueprint('blueprint', __name__)
 
 
-# @bp.route('/', methods=('GET', 'POST'))
-# def index():
-#     return render_template('index.html')
 
 @bp.route('/', methods=('GET', 'POST'))
 def index():
-    #return render_template('input.html')
+    #return render_template('index.html')
     return render_template('policy_builder.html')
 
 
