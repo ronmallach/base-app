@@ -34,8 +34,9 @@ def main_run(state, decision, T_max, pop_size = 38037, costs=[50,50,50,50],
              heroku=False, max_time=25):
     path = os.getcwd()
     inv_dt = 10                 # insert time steps within each day
-    decision_making_date = pd.Timestamp(2020, 8,24)      # date of starting decision making
-    final_simul_end_date = pd.Timestamp(2020, 11,20)   # date of last simulation date
+
+    decision_making_date = pd.Timestamp(startSim)      # date of starting decision making
+    final_simul_end_date = pd.Timestamp(endSim)   # date of last simulation date
     sim_week = final_simul_end_date.week - decision_making_date.week + 1
     gv.setup_global_variables(state, inv_dt, init_num_inf, decision_making_date.date(),
                               travel_num_inf,sim_week, final_simul_end_date.date(),
