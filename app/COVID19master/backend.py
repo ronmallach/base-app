@@ -107,7 +107,7 @@ def main_run(state, decision, T_max, popSize = 38037, costs=[50,50,50,50],
            'self.tot_num_diag': model.tot_num_diag[model.t-mod],
            'self.tot_num_dead': model.tot_num_dead[model.t-mod],
            'self.tot_num_hosp': model.tot_num_hosp[model.t-mod],
-           'self.op_ob.cumulative_cost_plot[0]': model.op_ob.cumulative_cost_plot[model.d],
+           'self.op_ob.cumulative_cost_plot': model.op_ob.cumulative_cost_plot[model.d],
            #'self.rate_unemploy': model.rate_unemploy[model.t-mod],
            'self.next_start_day': date_range[-1].strftime("%m/%d/%Y"),
            'self.t': model.t}

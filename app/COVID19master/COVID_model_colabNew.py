@@ -173,7 +173,7 @@ class CovidModel():
                 self.op_ob.num_quarantined_plot[self.d] = np.sum(self.op_ob.num_inf_plot[:self.d + 1])
             else:
                 self.op_ob.num_quarantined_plot[self.d] = np.sum(self.op_ob.num_inf_plot[(self.d -13) : (self.d + 1)])
-            self.op_ob.cumulative_cost_plot[self.d] =  self.op_ob.cumulative_cost_plot[self.d - 1] + self.op_ob.tot_test_cost_plot[self.d] + self.op_ob.num_quarantined_plot[self.d] * self.cost_tst[3]
+            self.op_ob.cumulative_cost_plot[self.d] =  self.op_ob.cumulative_cost_plot[self.d - 1] + self.op_ob.tot_test_cost_plot[self.d] + self.op_ob.num_quarantined_plot[self.d] * self.cost_tst[3]/1000000
             self.d += 1 # update day
 
     # Function to convert action
@@ -278,8 +278,8 @@ class CovidModel():
     # Function to determine number of infection among travelers
     # unif = 'Y' means travelers distributed through the week
     # otherwise only concentrate during the weekend
-    def determine_num_inf_travel(self):
-        if self.unif == 'Y':
+    def determine_num_inf_travel(self, unif = 'N'):
+        if unif == 'Y':
             if self.t % (self.inv_dt * self.travel_inf_inv) == 0:
                 self.travel_num_inf[self.t] = 1
         else:
