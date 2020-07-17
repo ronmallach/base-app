@@ -90,6 +90,6 @@ class output_var:
                            'Cumulative diagnosis': self.cumulative_inf[1:],
                            'Cumulative hospitalized': self.cumulative_hosp[1:],
                            'Cumulative deaths': self.cumulative_dead[1:],
-                           'Cumulative cost': self.tot_test_cost_plot.cumsum()[1:],
+                           'Cumulative costs': self.tot_test_cost_plot.cumsum()[1:],
                            'Cumulative cases (diagnosed and undiagnosed)': self.cumulative_new_inf_plot[1:]})
         return df
