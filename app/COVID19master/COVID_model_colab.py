@@ -89,6 +89,7 @@ class CovidModel():
             self.pre_results['self.num_trac_test'] = np.array(self.pre_results['self.num_trac_test'])
             self.pre_results['self.num_uni_test'] = np.array(self.pre_results['self.num_uni_test'])
             self.pre_results['self.num_base_test'] = np.array(self.pre_results['self.num_base_test'])
+            self.pre_results['self.op_ob.cumulative_cost_plot'] = np.array([self.pre_results['self.op_ob.cumulative_cost_plot']])
 
             self.decision_making_day = gv.day_decison_making
             self.sim_start_day = self.pre_results['self.next_start_day']
@@ -105,8 +106,8 @@ class CovidModel():
     # action_t = a NumPy array of size [1x3] with the values output by the RL model (a_sd, T_c, T_u)
     def step(self, action_t):
         self.policy[self.t] = action_t
-        self.set_action(action_t) # run it when action is a_sd, T_c, T_u
-        # self.set_action_mod(action_t)  # run it when action is a_sd, a_c, a_u
+        #self.set_action(action_t) # run it when action is a_sd, T_c, T_u
+        self.set_action_mod(action_t)  # run it when action is a_sd, a_c, a_u
         self.simulation_base()
         self.calc_imm_reward()
         self.output_result()
@@ -234,7 +235,6 @@ class CovidModel():
                 # probability of each people be selected as newly infected
                 prob = sample/tot_susceptible
                 index = np.random.choice((23-19) * self.tot_risk, size = int(self.travel_num_inf[self.t]), p = prob, replace = True)
-                print('index',index)
                 if len(index) != 0:
                     for i in index:
                         if i >= (23-19):
@@ -520,6 +520,7 @@ class CovidModel():
         self.tot_num_dead[0] = self.pre_results['self.tot_num_dead']
         self.tot_num_hosp[0] = self.pre_results['self.tot_num_hosp']
         self.op_ob.cumulative_cost_plot[0] = self.pre_results['self.op_ob.cumulative_cost_plot']
+        
 
 
 

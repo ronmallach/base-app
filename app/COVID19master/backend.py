@@ -13,7 +13,7 @@ def read_ABC(from_java):
         for plan, array in policy.items():
             data[plan][name] = array
     plans = ['A', 'B', 'C']
-    policies = ['CR', 'MT', 'TT']
+    policies = ['CR', 'TT', 'MT']
     index = [i for i in range(num_days+1)]
     rl_input = {}
     for plan in plans:
@@ -97,7 +97,6 @@ def main_run(state, decision, T_max, pop_size = 38037, costs=[50,50,50,50],
 
 
 def prep_results_for_java(results, prior_results=None):
-    print(results.keys())
     results = copy.deepcopy(results)
     results['is_complete'] = str(results['is_complete'])
     if type(results['to_java']) == type(None):
@@ -155,7 +154,6 @@ def prep_input_excel(results):
                     if point == 'cost':
                         value = json.loads(value)
                         for i, cost in enumerate(value):
-                            print(i, cost)
                             to_excel[key][cost_name[i]] = cost
                     else:
                         to_excel[key][point] = value
